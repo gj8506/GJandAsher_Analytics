@@ -98,9 +98,16 @@ class ProfileScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Role in Firestore:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Active System Role', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        SizedBox(height: 2),
+                        Text('Synced in real time from Firestore', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                      ],
+                    ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: userRole.toLowerCase() == 'admin' ? Colors.green.shade50 : AppColors.shipTealContainer,
                         borderRadius: BorderRadius.circular(12),
@@ -108,42 +115,30 @@ class ProfileScreen extends ConsumerWidget {
                           color: userRole.toLowerCase() == 'admin' ? Colors.green.shade300 : Colors.blue.shade200,
                         ),
                       ),
-                      child: Text(
-                        userRole.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: userRole.toLowerCase() == 'admin' ? Colors.green.shade800 : AppColors.shipNavyPrimary,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: userRole.toLowerCase() == 'admin' ? Colors.green : AppColors.shipTealAccent,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            userRole.toLowerCase() == 'admin' ? 'Admin' : 'Staff',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: userRole.toLowerCase() == 'admin' ? Colors.green.shade800 : AppColors.shipNavyPrimary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 12),
-                const Text('Simulation Toggle (for testing in Android Studio):', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                const SizedBox(height: 6),
-                Row(
-                  children: ['Staff Mode', 'Admin Mode'].map((r) {
-                    final isChosen = userRole.toLowerCase() == r.toLowerCase().replaceAll(' mode', '');
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: isChosen ? AppColors.shipNavyPrimary : Colors.white,
-                            foregroundColor: isChosen ? Colors.white : Colors.black87,
-                            side: BorderSide(color: isChosen ? AppColors.shipNavyPrimary : Colors.grey.shade300),
-                          ),
-                          onPressed: () {
-                            final simpleRole = r.toLowerCase().replaceAll(' mode', '');
-                            onRoleChanged(simpleRole);
-                            ref.read(mockRoleProvider.notifier).state = simpleRole;
-                          },
-                          child: Text(r, style: const TextStyle(fontSize: 11)),
-                        ),
-                      ),
-                    );
-                  }).toList(),
                 ),
               ],
             ),

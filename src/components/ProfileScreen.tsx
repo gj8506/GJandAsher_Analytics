@@ -3,13 +3,14 @@ import { User, Shield, KeyRound, CheckCircle2, Lock, Building2, RefreshCw } from
 
 interface ProfileScreenProps {
   userRole: string;
-  setUserRole: (role: string) => void;
+  setUserRole?: (role: string) => void;
 }
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   userRole,
-  setUserRole,
 }) => {
+  const isAdmin = userRole.toLowerCase().includes('admin');
+
   return (
     <div className="flex flex-col px-4 pt-3 pb-24 max-w-md mx-auto w-full">
       {/* Module 2 Android Header */}
@@ -47,25 +48,29 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
         </div>
 
-        {/* Role Toggle Switcher */}
-        <div className="mt-4 pt-3 border-t border-slate-100">
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            Active System Role (Firestore Synced)
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {(['Staff Mode', 'Admin Mode'] as const).map((role) => (
-              <button
-                key={role}
-                onClick={() => setUserRole(role)}
-                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
-                  userRole === role
-                    ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-sm'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                {role}
-              </button>
-            ))}
+        {/* Read-Only Role Display */}
+        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+          <div>
+            <span className="block text-xs font-semibold text-slate-700">
+              Active System Role
+            </span>
+            <span className="text-[11px] text-slate-400">
+              Synced from Cloud Firestore
+            </span>
+          </div>
+          <div
+            className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 ${
+              isAdmin
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                : 'bg-[#E0F2FE] text-[#0F172A] border-sky-300'
+            }`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isAdmin ? 'bg-emerald-500' : 'bg-[#0EA5E9]'
+              }`}
+            />
+            <span>{isAdmin ? 'Admin' : 'Staff'}</span>
           </div>
         </div>
       </div>

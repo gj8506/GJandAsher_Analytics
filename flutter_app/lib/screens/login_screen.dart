@@ -339,57 +339,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     style: TextStyle(fontSize: 11, color: Colors.grey),
                   ),
                 ],
-
-                const SizedBox(height: 32),
-
-                // Offline Testing / Quick Role Simulation Card
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Android Studio Testing Options (Module 2):',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 6),
-                              ),
-                              onPressed: () {
-                                ref.read(mockRoleProvider.notifier).state = 'staff';
-                              },
-                              child: const Text('Test as Staff', style: TextStyle(fontSize: 11)),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: AppColors.shipNavyPrimary,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 6),
-                              ),
-                              onPressed: () {
-                                ref.read(mockRoleProvider.notifier).state = 'admin';
-                              },
-                              child: const Text('Test as Admin', style: TextStyle(fontSize: 11)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
