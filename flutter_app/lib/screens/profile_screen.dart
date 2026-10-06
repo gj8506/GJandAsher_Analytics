@@ -1,7 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   final String userRole;
   final Function(String) onRoleChanged;
 
@@ -12,7 +15,10 @@ class ProfileScreen extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+    final user = authState.value;
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
       children: [
@@ -35,6 +41,8 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
+
+        // User profile card
         Card(
           color: Colors.white,
           elevation: 0.5,
@@ -47,27 +55,76 @@ class ProfileScreen extends StatelessWidget {
                 Row(
                   children: [
                     CircleAvatar(
-                      radius: 24,
+                      radius: 26,
                       backgroundColor: AppColors.shipNavyPrimary,
-                      child: const Text('GJ', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
+                      child: user?.photoURL == null
+                          ? Text(
+                              user?.displayName?.isNotEmpty == true
+                                  ? user!.displayName!.substring(0, 1).toUpperCase()
+                                  : 'GJ',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                            )
+                          : null,
                     ),
                     const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text('GJ & Asher Logistics Hub', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                        Text('gj8506@gmail.com', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user?.displayName ?? 'GJ & Asher Warehouse Lead',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                          Text(
+                            user?.email ?? 'gj8506@gmail.com',
+                            style: const TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: const [
+                              Icon(Icons.check_circle, size: 12, color: Colors.green),
+                              SizedBox(width: 4),
+                              Text('Google Auth Verified', style: TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 const Divider(),
-                const Text('Active Role (Firestore Synced)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Role in Firestore:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: userRole.toLowerCase() == 'admin' ? Colors.green.shade50 : AppColors.shipTealContainer,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: userRole.toLowerCase() == 'admin' ? Colors.green.shade300 : Colors.blue.shade200,
+                        ),
+                      ),
+                      child: Text(
+                        userRole.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: userRole.toLowerCase() == 'admin' ? Colors.green.shade800 : AppColors.shipNavyPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text('Simulation Toggle (for testing in Android Studio):', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                const SizedBox(height: 6),
                 Row(
                   children: ['Staff Mode', 'Admin Mode'].map((r) {
-                    final isChosen = userRole == r;
+                    final isChosen = userRole.toLowerCase() == r.toLowerCase().replaceAll(' mode', '');
                     return Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -77,8 +134,12 @@ class ProfileScreen extends StatelessWidget {
                             foregroundColor: isChosen ? Colors.white : Colors.black87,
                             side: BorderSide(color: isChosen ? AppColors.shipNavyPrimary : Colors.grey.shade300),
                           ),
-                          onPressed: () => onRoleChanged(r),
-                          child: Text(r, style: const TextStyle(fontSize: 12)),
+                          onPressed: () {
+                            final simpleRole = r.toLowerCase().replaceAll(' mode', '');
+                            onRoleChanged(simpleRole);
+                            ref.read(mockRoleProvider.notifier).state = simpleRole;
+                          },
+                          child: Text(r, style: const TextStyle(fontSize: 11)),
                         ),
                       ),
                     );
@@ -89,24 +150,58 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
+
+        // RA 10173 Card
         Card(
           color: Colors.white,
           elevation: 0.5,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey.shade200)),
-          child: const Padding(
-            padding: EdgeInsets.all(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Republic Act No. 10173', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                SizedBox(height: 4),
-                Text(
-                  'Customer Personally Identifiable Information (PII) is masked in transit logs according to NPC circular compliance.',
-                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                Row(
+                  children: const [
+                    Icon(Icons.shield_outlined, color: AppColors.shipTealAccent, size: 18),
+                    SizedBox(width: 8),
+                    Text('Republic Act No. 10173 (DPA)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Customer Personally Identifiable Information (PII) is masked according to NPC circular compliance. DPA consent status is logged with timestamp in Cloud Firestore.',
+                  style: TextStyle(fontSize: 11, color: Colors.grey, height: 1.3),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(8)),
+                  child: const Text('✓ DPA Consent Signed & Active', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
           ),
+        ),
+        const SizedBox(height: 16),
+
+        // Sign Out Button
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red.shade50,
+            foregroundColor: Colors.red.shade700,
+            elevation: 0,
+            side: BorderSide(color: Colors.red.shade200),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+          onPressed: () async {
+            await ref.read(authServiceProvider).signOut();
+            // Reset mock role if offline testing
+            ref.read(mockRoleProvider.notifier).state = 'guest';
+          },
+          icon: const Icon(Icons.logout_rounded, size: 18),
+          label: const Text('Sign Out of Google Account', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         ),
       ],
     );

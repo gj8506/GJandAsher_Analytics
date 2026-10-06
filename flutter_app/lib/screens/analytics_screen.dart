@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 class AnalyticsScreen extends StatefulWidget {
-  const AnalyticsScreen({Key? key}) : super(key: key);
+  final bool isAdmin;
+
+  const AnalyticsScreen({
+    Key? key,
+    this.isAdmin = true,
+  }) : super(key: key);
 
   @override
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
@@ -14,6 +19,67 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.isAdmin) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.amber.shade300, width: 2),
+                ),
+                child: const Icon(Icons.lock_rounded, size: 36, color: Colors.amber),
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                'Admin Access Required',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.shipNavyPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'The Analytics and Predictive Forecasting module (Modules 6 & 7) is restricted to executive leadership (Admin role).',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'How to unlock this tab:',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.shipNavyPrimary),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      '1. Open Google Firebase Console → Cloud Firestore.\n2. Navigate to users/{uid} for your email (e.g. nolancaparros.draft@gmail.com).\n3. Edit the field "role" and change value from "staff" to "admin".\n4. Riverpod will sync in real time and unlock this view automatically.',
+                      style: TextStyle(fontSize: 10, color: Colors.black87, height: 1.3),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final projectedPkgs = (185 * pow(1.08, forecastHorizon) * (forecastHorizon >= 2 ? 1.15 : 1.0)).round();
     final projectedRevenue = projectedPkgs * 1420;
 
@@ -38,7 +104,28 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
+
+        // Admin badge
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.green.shade50,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.green.shade200),
+          ),
+          child: Row(
+            children: const [
+              Icon(Icons.verified_user, color: Colors.green, size: 16),
+              SizedBox(width: 6),
+              Text(
+                'Role: Admin Verified (Firestore Synced)',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
 
         // KPI Grid
         Row(

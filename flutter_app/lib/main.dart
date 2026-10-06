@@ -1,5 +1,9 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'models/parcel.dart';
+import 'providers/auth_provider.dart';
+import 'screens/login_screen.dart';
 import 'screens/parcels_screen.dart';
 import 'screens/dispatch_screen.dart';
 import 'screens/returns_screen.dart';
@@ -7,8 +11,20 @@ import 'screens/analytics_screen.dart';
 import 'screens/profile_screen.dart';
 import 'theme/app_theme.dart';
 
-void main() {
-  runApp(const ShipTrackerFlutterApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    // Attempt Firebase initialization if google-services.json is present
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase not initialized yet: $e. Running in offline/simulation mode.');
+  }
+
+  runApp(
+    const ProviderScope(
+      child: ShipTrackerFlutterApp(),
+    ),
+  );
 }
 
 class ShipTrackerFlutterApp extends StatelessWidget {
@@ -25,21 +41,53 @@ class ShipTrackerFlutterApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.shipNavyPrimary),
         useMaterial3: true,
       ),
-      home: const MainNavigationScreen(),
+      home: const AuthGateRouter(),
     );
   }
 }
 
-class MainNavigationScreen extends StatefulWidget {
+// Module 2: Auth-State-Driven Router Redirect
+class AuthGateRouter extends ConsumerWidget {
+  const AuthGateRouter({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+    final mockRole = ref.watch(mockRoleProvider);
+
+    return authState.when(
+      data: (user) {
+        // If logged in via Firebase Auth OR testing via offline mock role
+        if (user != null || mockRole != 'guest') {
+          return const MainNavigationScreen();
+        }
+        return const LoginScreen();
+      },
+      loading: () => const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.shipNavyPrimary),
+        ),
+      ),
+      error: (_, __) {
+        // Fallback to check offline mock role
+        if (mockRole != 'guest') {
+          return const MainNavigationScreen();
+        }
+        return const LoginScreen();
+      },
+    );
+  }
+}
+
+class MainNavigationScreen extends ConsumerStatefulWidget {
   const MainNavigationScreen({Key? key}) : super(key: key);
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
+class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
   int _selectedIndex = 0;
-  String _userRole = 'Staff Mode';
 
   final List<Parcel> _parcels = [
     Parcel(
@@ -173,11 +221,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Read real-time role and admin status from Riverpod
+    final roleAsync = ref.watch(userRoleProvider);
+    final mockRole = ref.watch(mockRoleProvider);
+    final activeRole = roleAsync.value ?? mockRole;
+    final isAdmin = ref.watch(isAdminProvider);
+
     final screens = [
       ParcelsScreen(
         parcels: _parcels,
         onSelectParcel: _showParcelDetailModal,
-        userRole: _userRole,
+        userRole: '${activeRole.toUpperCase()} MODE',
       ),
       DispatchScreen(
         onAddParcel: (p) => setState(() => _parcels.insert(0, p)),
@@ -187,10 +241,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         returns: _returns,
         onAddReturn: (r) => setState(() => _returns.insert(0, r)),
       ),
-      const AnalyticsScreen(),
+      // Module 2: Strict role-gated Analytics view
+      AnalyticsScreen(
+        isAdmin: isAdmin,
+      ),
       ProfileScreen(
-        userRole: _userRole,
-        onRoleChanged: (role) => setState(() => _userRole = role),
+        userRole: activeRole,
+        onRoleChanged: (role) {
+          ref.read(mockRoleProvider.notifier).state = role;
+        },
       ),
     ];
 

@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && getUserData().role == 'admin';
+    }
+
+    function isStaff() {
+      return isAuthenticated() && (getUserData().role == 'staff' || getUserData().role == 'admin');
+    }
+
+    // -------------------------------------------------------------
+    // Users Collection
+    // -------------------------------------------------------------
+    match /users/{userId} {
+      // Any authenticated user can read their own profile.
+      // Admins can read all profiles.
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Users can create their own document on first sign-in,
+      // but role must be initialized to 'staff'.
+      allow create: if isOwner(userId) && request.resource.data.role == 'staff';
+
+      // Only admins can update the 'role' field.
+      // Users can update their own non-sensitive fields (displayName, photoUrl).
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        request.resource.data.role == resource.data.role
+      );
+
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------
+    // Parcels Collection (Outbound Logistics)
+    // -------------------------------------------------------------
+    match /parcels/{parcelId} {
+      // Both Staff and Admin can view and create parcel dispatch logs
+      allow read, create: if isStaff();
+      // Only Admin can delete dispatch logs or update critical financial data
+      allow update, delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------
+    // Returns Collection (Returns & Refunds Logger)
+    // -------------------------------------------------------------
+    match /returns/{returnId} {
+      // Both Staff and Admin can log and read return records
+      allow read, create, update: if isStaff();
+      // Only Admin can permanently delete return records
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------
+    // Analytics & Forecasts (Module 6 & 7)
+    // -------------------------------------------------------------
+    match /analytics/{docId} {
+      // Strictly restricted to Admin only
+      allow read, write: if isAdmin();
+    }
+  }
+}
