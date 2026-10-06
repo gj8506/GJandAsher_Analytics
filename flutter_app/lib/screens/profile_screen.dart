@@ -20,7 +20,7 @@ class ProfileScreen extends ConsumerWidget {
     final user = authState.value;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
       children: [
         Center(
           child: Column(
@@ -178,6 +178,34 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
         ),
+        const SizedBox(height: 12),
+
+        // Warehouse Terminal Configuration Card (matching web)
+        Card(
+          color: Colors.white,
+          elevation: 0.5,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey.shade200)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Warehouse Terminal Configuration',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.shipNavyPrimary),
+                ),
+                const SizedBox(height: 10),
+                _buildTerminalRow('Facility Code', 'MNL-HUB-04', isMono: true),
+                const Divider(height: 14),
+                _buildTerminalRow('Supported Marketplaces', 'Shopee • Lazada • TikTok'),
+                const Divider(height: 14),
+                _buildTerminalRow('Default Courier Routing', 'SPX / J&T / LEX Priority'),
+                const Divider(height: 14),
+                _buildTerminalRow('Applet Version', 'v2.0 (Flutter Mobile)', isMono: true),
+              ],
+            ),
+          ),
+        ),
         const SizedBox(height: 16),
 
         // Sign Out Button
@@ -192,11 +220,28 @@ class ProfileScreen extends ConsumerWidget {
           ),
           onPressed: () async {
             await ref.read(authServiceProvider).signOut();
-            // Reset mock role if offline testing
             ref.read(mockRoleProvider.notifier).state = 'guest';
           },
           icon: const Icon(Icons.logout_rounded, size: 18),
           label: const Text('Sign Out of Google Account', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTerminalRow(String label, String value, {bool isMono = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.shipNavyPrimary,
+            fontFamily: isMono ? 'monospace' : null,
+          ),
         ),
       ],
     );

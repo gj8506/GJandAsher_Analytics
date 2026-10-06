@@ -16,6 +16,7 @@ class AnalyticsScreen extends StatefulWidget {
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   double forecastHorizon = 6;
+  String timeRange = '30d';
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +85,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final projectedRevenue = projectedPkgs * 1420;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
       children: [
         Center(
           child: Column(
@@ -143,7 +144,137 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             Expanded(child: _buildKpiCard('Return / RTS Rate', '3.8%', '3 parcels returned', Colors.red)),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
+
+        // Outbound Platform Share Card (matching web)
+        Card(
+          color: Colors.white,
+          elevation: 0.5,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.grey.shade200),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text('Outbound Platform Share', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.shipNavyPrimary)),
+                    Text('57 parcels', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // Stacked bar
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    height: 12,
+                    child: Row(
+                      children: const [
+                        Expanded(flex: 42, child: ColoredBox(color: AppColors.shopeeOrange)),
+                        Expanded(flex: 32, child: ColoredBox(color: AppColors.lazadaBlue)),
+                        Expanded(flex: 26, child: ColoredBox(color: AppColors.tikTokBlack)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildPlatformLegend('Shopee', '42% (24)', AppColors.shopeeOrange),
+                    _buildPlatformLegend('Lazada', '32% (18)', AppColors.lazadaBlue),
+                    _buildPlatformLegend('TikTok', '26% (15)', AppColors.tikTokBlack),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Daily Dispatch Trends (matching web)
+        Card(
+          color: Colors.white,
+          elevation: 0.5,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.grey.shade200),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Daily Dispatch Trends', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.shipNavyPrimary)),
+                        Text('Multi-courier dispatch volume', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                      ],
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.all(2),
+                      child: Row(
+                        children: ['7d', '30d', '90d'].map((r) {
+                          final isSelected = timeRange == r;
+                          return GestureDetector(
+                            onTap: () => setState(() => timeRange = r),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isSelected ? Colors.white : Colors.transparent,
+                                borderRadius: BorderRadius.circular(6),
+                                boxShadow: isSelected ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : null,
+                              ),
+                              child: Text(
+                                r.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected ? AppColors.shipNavyPrimary : Colors.grey,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Daily Chart Bars
+                SizedBox(
+                  height: 110,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildBarColumn('Mon', 8, 40),
+                      _buildBarColumn('Tue', 12, 60),
+                      _buildBarColumn('Wed', 15, 75),
+                      _buildBarColumn('Thu', 11, 55),
+                      _buildBarColumn('Fri', 19, 95),
+                      _buildBarColumn('Sat', 14, 70),
+                      _buildBarColumn('Sun', 9, 45),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
 
         // Predictive Forecasting Card
         Container(
@@ -246,6 +377,42 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildPlatformLegend(String name, String stat, Color color) {
+    return Row(
+      children: [
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 4),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(name, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+            Text(stat, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.shipNavyPrimary)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBarColumn(String day, int count, double height) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Text('$count', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey)),
+        const SizedBox(height: 4),
+        Container(
+          width: 18,
+          height: height,
+          decoration: BoxDecoration(
+            color: AppColors.shipTealAccent,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(day, style: const TextStyle(fontSize: 10, color: Colors.black54)),
       ],
     );
   }
