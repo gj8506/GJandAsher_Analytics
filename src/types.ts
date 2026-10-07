@@ -41,3 +41,39 @@ export interface ReturnRecord {
   notes?: string;
   refundAmount: string;
 }
+
+export interface Product {
+  id: string;
+  name: string;
+  category: 'Electronics' | 'Accessories' | 'Home & Living' | 'Apparel';
+  price: string;
+  rawPrice: number;
+  stock: number;
+  description: string;
+  platforms: Platform[];
+  image: string;
+  rating: number;
+  reviewsCount: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  sender: 'customer' | 'admin';
+  senderName: string;
+  text: string;
+  timestamp: string;
+  parcelId?: string;
+  trackingNumber?: string;
+  productId?: string;
+}
+
+export type PortalType = 'warehouse' | 'customer';
+
+export interface UserRecord {
+  uid: string;
+  email: string;
+  displayName: string;
+  role: 'customer' | 'staff' | 'admin';
+  registeredAt: string;
+  dpaConsent: boolean;
+}

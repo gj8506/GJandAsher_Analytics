@@ -204,3 +204,152 @@ export const INITIAL_RETURNS: ReturnRecord[] = [
     notes: 'Waybill crushed. Filing courier compensation claim against J&T Express hub.'
   }
 ];
+
+export const INITIAL_PRODUCTS: import('./types').Product[] = [
+  {
+    id: 'prod-1',
+    name: 'Pro Wireless ANC Earbuds (BT 5.4)',
+    category: 'Electronics',
+    price: '₱1,250.00',
+    rawPrice: 1250,
+    stock: 48,
+    description: 'Active Noise Cancelling earbuds with deep bass, low latency gaming mode, and 36hr battery life.',
+    platforms: ['Shopee', 'Lazada', 'TikTok Shop'],
+    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&auto=format&fit=crop&q=60',
+    rating: 4.9,
+    reviewsCount: 312
+  },
+  {
+    id: 'prod-2',
+    name: 'RGB Hot-Swappable Mechanical Keyboard',
+    category: 'Electronics',
+    price: '₱3,420.00',
+    rawPrice: 3420,
+    stock: 19,
+    description: '75% Layout wireless tri-mode mechanical keyboard with pre-lubed Brown Switches and custom PBT keycaps.',
+    platforms: ['Lazada', 'Shopee'],
+    image: 'https://images.unsplash.com/photo-1595225476474-87563907a212?w=500&auto=format&fit=crop&q=60',
+    rating: 4.8,
+    reviewsCount: 184
+  },
+  {
+    id: 'prod-3',
+    name: 'Heavy Duty 24"-34" Gas Spring Monitor Mount',
+    category: 'Accessories',
+    price: '₱4,650.00',
+    rawPrice: 4650,
+    stock: 14,
+    description: 'Aircraft-grade aluminum single monitor arm with integrated cable management channels and clamp base.',
+    platforms: ['Lazada'],
+    image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=500&auto=format&fit=crop&q=60',
+    rating: 4.9,
+    reviewsCount: 96
+  },
+  {
+    id: 'prod-4',
+    name: 'Ergonomic LED Desk Lamp with Wireless Qi Charger',
+    category: 'Home & Living',
+    price: '₱2,100.00',
+    rawPrice: 2100,
+    stock: 32,
+    description: 'Multi-angle dimmable eye-caring task light with 5 color temperatures, timer, and 15W phone charging pad.',
+    platforms: ['Shopee', 'TikTok Shop'],
+    image: 'https://images.unsplash.com/photo-1534349762230-e0cadf78f5da?w=500&auto=format&fit=crop&q=60',
+    rating: 4.7,
+    reviewsCount: 142
+  },
+  {
+    id: 'prod-5',
+    name: 'Premium 240GSM Heavyweight Oversized Tee (3-Pack)',
+    category: 'Apparel',
+    price: '₱890.00',
+    rawPrice: 890,
+    stock: 65,
+    description: 'Pre-shrunk 100% combed cotton streetwear drop-shoulder tees. Breathable and fade-resistant.',
+    platforms: ['TikTok Shop', 'Shopee'],
+    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=500&auto=format&fit=crop&q=60',
+    rating: 4.9,
+    reviewsCount: 420
+  },
+  {
+    id: 'prod-6',
+    name: 'IPX7 Waterproof Rugged Outdoor Bluetooth Speaker',
+    category: 'Electronics',
+    price: '₱1,780.00',
+    rawPrice: 1780,
+    stock: 27,
+    description: '20W 360-degree stereo sound with punchy bass radiators, built-in mic, and carabiner clip.',
+    platforms: ['Shopee', 'TikTok Shop'],
+    image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500&auto=format&fit=crop&q=60',
+    rating: 4.8,
+    reviewsCount: 168
+  }
+];
+
+export const INITIAL_CHAT_MESSAGES: import('./types').ChatMessage[] = [
+  {
+    id: 'msg-1',
+    sender: 'customer',
+    senderName: 'Maria Santos',
+    text: 'Good morning! Could you check if my order #SPXPH0394829104 was dispatched today?',
+    timestamp: 'Today, 09:45 AM',
+    trackingNumber: 'SPXPH0394829104'
+  },
+  {
+    id: 'msg-2',
+    sender: 'admin',
+    senderName: 'Admin (Nolan Caparros)',
+    text: 'Hello Maria! Yes, your parcel was processed and dispatched at 09:30 AM via SPX Express. It is currently headed to the Quezon City Sort Center.',
+    timestamp: 'Today, 09:47 AM',
+    trackingNumber: 'SPXPH0394829104'
+  },
+  {
+    id: 'msg-3',
+    sender: 'customer',
+    senderName: 'Maria Santos',
+    text: 'Awesome, thank you so much! Also, do you have more stock for the RGB mechanical keyboard in brown switch?',
+    timestamp: 'Today, 10:12 AM'
+  },
+  {
+    id: 'msg-4',
+    sender: 'admin',
+    senderName: 'Admin (Nolan Caparros)',
+    text: 'Yes! We have 19 units left in the central hub. You can place an order directly from the Store tab anytime!',
+    timestamp: 'Today, 10:15 AM'
+  }
+];
+
+export const INITIAL_USERS: import('./types').UserRecord[] = [
+  {
+    uid: 'usr-admin-01',
+    email: 'nolancaparros.draft@gmail.com',
+    displayName: 'Nolan Caparros',
+    role: 'admin',
+    registeredAt: 'Oct 01, 2026',
+    dpaConsent: true,
+  },
+  {
+    uid: 'usr-staff-01',
+    email: 'staff.marcos@gmail.com',
+    displayName: 'Marcos Dela Cruz',
+    role: 'staff',
+    registeredAt: 'Oct 02, 2026',
+    dpaConsent: true,
+  },
+  {
+    uid: 'usr-cust-01',
+    email: 'maria.santos@gmail.com',
+    displayName: 'Maria Santos',
+    role: 'customer',
+    registeredAt: 'Oct 03, 2026',
+    dpaConsent: true,
+  },
+  {
+    uid: 'usr-cust-02',
+    email: 'new.user@gmail.com',
+    displayName: 'Alex Reyes (New Sign-In)',
+    role: 'customer',
+    registeredAt: 'Today, 08:30 AM',
+    dpaConsent: true,
+  },
+];

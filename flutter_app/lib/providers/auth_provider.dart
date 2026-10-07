@@ -12,8 +12,8 @@ final authStateProvider = StreamProvider<User?>((ref) {
   return authService.authStateChanges;
 });
 
-// Offline test fallback role provider (used if running without Firebase)
-final mockRoleProvider = StateProvider<String>((ref) => 'staff');
+// Default to null so user is DIRECTLY placed on Login / Registration screen upon first open
+final mockRoleProvider = StateProvider<String?>((ref) => null);
 
 // Stream of real-time role from Firestore: users/{uid}
 final userRoleProvider = StreamProvider<String>((ref) {
@@ -38,6 +38,6 @@ final isAdminProvider = Provider<bool>((ref) {
   final mockRole = ref.watch(mockRoleProvider);
 
   // If real Firebase role is available:
-  final realRole = roleAsync.value ?? mockRole;
+  final realRole = roleAsync.value ?? mockRole ?? 'guest';
   return realRole.toLowerCase() == 'admin';
 });

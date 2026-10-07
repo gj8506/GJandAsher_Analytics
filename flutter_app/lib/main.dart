@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'models/parcel.dart';
+import 'models/product.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/parcels_screen.dart';
@@ -9,15 +10,18 @@ import 'screens/dispatch_screen.dart';
 import 'screens/returns_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/customer/customer_portal_screen.dart';
 import 'theme/app_theme.dart';
+
+// Portal provider ('customer' or 'warehouse')
+final portalProvider = StateProvider<String>((ref) => 'customer');
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    // Attempt Firebase initialization if google-services.json is present
     await Firebase.initializeApp();
   } catch (e) {
-    debugPrint('Firebase not initialized yet: $e. Running in offline/simulation mode.');
+    debugPrint('Firebase initialized in simulation mode: $e');
   }
 
   runApp(
@@ -46,7 +50,6 @@ class ShipTrackerFlutterApp extends StatelessWidget {
   }
 }
 
-// Module 2: Auth-State-Driven Router Redirect
 class AuthGateRouter extends ConsumerWidget {
   const AuthGateRouter({Key? key}) : super(key: key);
 
@@ -57,9 +60,8 @@ class AuthGateRouter extends ConsumerWidget {
 
     return authState.when(
       data: (user) {
-        // If logged in via Firebase Auth OR testing via offline mock role
-        if (user != null || mockRole != 'guest') {
-          return const MainNavigationScreen();
+        if (user != null || (mockRole != null && mockRole != 'guest')) {
+          return const MainPortalRouter();
         }
         return const LoginScreen();
       },
@@ -69,9 +71,8 @@ class AuthGateRouter extends ConsumerWidget {
         ),
       ),
       error: (_, __) {
-        // Fallback to check offline mock role
-        if (mockRole != 'guest') {
-          return const MainNavigationScreen();
+        if (mockRole != null && mockRole != 'guest') {
+          return const MainPortalRouter();
         }
         return const LoginScreen();
       },
@@ -79,14 +80,14 @@ class AuthGateRouter extends ConsumerWidget {
   }
 }
 
-class MainNavigationScreen extends ConsumerStatefulWidget {
-  const MainNavigationScreen({Key? key}) : super(key: key);
+class MainPortalRouter extends ConsumerStatefulWidget {
+  const MainPortalRouter({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  ConsumerState<MainPortalRouter> createState() => _MainPortalRouterState();
 }
 
-class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
+class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
   int _selectedIndex = 0;
 
   final List<Parcel> _parcels = [
@@ -138,38 +139,6 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       dateISO: '2026-10-03T11:20:00',
       items: '3x Premium Cotton Oversized Tees',
     ),
-    Parcel(
-      id: 'p-4',
-      trackingNumber: 'LBC88301928',
-      platform: 'Shopee',
-      courier: 'Flash Express',
-      customer: 'Roberto Tan',
-      phone: '+63 918 *** 6712',
-      destination: 'Pasig City, Metro Manila',
-      amount: '₱2,100.00',
-      rawAmount: 2100,
-      status: 'Return Logged',
-      statusColorHex: '#EF4444',
-      dispatchedAt: '3 days ago, 02:40 PM',
-      dateISO: '2026-10-02T14:40:00',
-      items: '1x Ergonomic Desk Lamp',
-    ),
-    Parcel(
-      id: 'p-5',
-      trackingNumber: 'SPXPH994820194',
-      platform: 'Shopee',
-      courier: 'SPX Express',
-      customer: 'Chloe Mendoza',
-      phone: '+63 922 *** 8810',
-      destination: 'Taguig City, BGC',
-      amount: '₱1,780.00',
-      rawAmount: 1780,
-      status: 'Dispatched',
-      statusColorHex: '#3B82F6',
-      dispatchedAt: 'Today, 11:05 AM',
-      dateISO: '2026-10-05T11:05:00',
-      items: '1x Portable Bluetooth Speaker',
-    ),
   ];
 
   final List<ReturnRecord> _returns = [
@@ -187,6 +156,99 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
       notes: 'Rider attempted 3x deliveries. Tamper seal intact.',
     ),
   ];
+
+  final List<Product> _products = [
+    Product(
+      id: 'prod-1',
+      name: 'Pro Wireless ANC Earbuds (BT 5.4)',
+      category: 'Electronics',
+      price: '₱1,250.00',
+      rawPrice: 1250,
+      stock: 48,
+      description: 'Active Noise Cancelling earbuds with deep bass and 36hr battery.',
+      platforms: ['Shopee', 'Lazada', 'TikTok Shop'],
+      image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&auto=format&fit=crop&q=60',
+      rating: 4.9,
+      reviewsCount: 312,
+    ),
+    Product(
+      id: 'prod-2',
+      name: 'RGB Hot-Swappable Mechanical Keyboard',
+      category: 'Electronics',
+      price: '₱3,420.00',
+      rawPrice: 3420,
+      stock: 19,
+      description: '75% Layout wireless tri-mode mechanical keyboard with pre-lubed switches.',
+      platforms: ['Lazada', 'Shopee'],
+      image: 'https://images.unsplash.com/photo-1595225476474-87563907a212?w=500&auto=format&fit=crop&q=60',
+      rating: 4.8,
+      reviewsCount: 184,
+    ),
+    Product(
+      id: 'prod-3',
+      name: 'Heavy Duty Gas Spring Monitor Mount',
+      category: 'Accessories',
+      price: '₱4,650.00',
+      rawPrice: 4650,
+      stock: 14,
+      description: 'Single monitor arm with integrated cable management.',
+      platforms: ['Lazada'],
+      image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=500&auto=format&fit=crop&q=60',
+      rating: 4.9,
+      reviewsCount: 96,
+    ),
+  ];
+
+  final List<ChatMessage> _chatMessages = [
+    ChatMessage(
+      id: 'msg-1',
+      sender: 'customer',
+      senderName: 'Maria Santos',
+      text: 'Good morning! Could you check if my order #SPXPH0394829104 was dispatched today?',
+      timestamp: 'Today, 09:45 AM',
+      trackingNumber: 'SPXPH0394829104',
+    ),
+    ChatMessage(
+      id: 'msg-2',
+      sender: 'admin',
+      senderName: 'Admin (Nolan Caparros)',
+      text: 'Hello Maria! Yes, your parcel was processed and dispatched at 09:30 AM via SPX Express.',
+      timestamp: 'Today, 09:47 AM',
+      trackingNumber: 'SPXPH0394829104',
+    ),
+  ];
+
+  void _handleSendMessage(String text, String? trackingNumber) {
+    setState(() {
+      _chatMessages.add(
+        ChatMessage(
+          id: 'msg-${DateTime.now().millisecondsSinceEpoch}',
+          sender: 'customer',
+          senderName: 'Maria Santos',
+          text: text,
+          timestamp: 'Just now',
+          trackingNumber: trackingNumber,
+        ),
+      );
+    });
+
+    // Auto-reply simulation from Admin
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          _chatMessages.add(
+            ChatMessage(
+              id: 'msg-admin-${DateTime.now().millisecondsSinceEpoch}',
+              sender: 'admin',
+              senderName: 'Admin (Nolan Caparros)',
+              text: 'Thanks for reaching out! We have checked your request and updated the fulfillment team.',
+              timestamp: 'Just now',
+            ),
+          );
+        });
+      }
+    });
+  }
 
   void _showParcelDetailModal(Parcel parcel) {
     showModalBottomSheet(
@@ -221,10 +283,27 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Read real-time role and admin status from Riverpod
+    final activePortal = ref.watch(portalProvider);
+
+    // If Customer Portal is selected
+    if (activePortal == 'customer') {
+      return CustomerPortalScreen(
+        parcels: _parcels,
+        products: _products,
+        chatMessages: _chatMessages,
+        onSendMessage: _handleSendMessage,
+        onSelectParcel: _showParcelDetailModal,
+        onSignOut: () {
+          ref.read(mockRoleProvider.notifier).state = null;
+          ref.read(authServiceProvider).signOut();
+        },
+      );
+    }
+
+    // Warehouse Logistics Hub
     final roleAsync = ref.watch(userRoleProvider);
     final mockRole = ref.watch(mockRoleProvider);
-    final activeRole = roleAsync.value ?? mockRole;
+    final activeRole = roleAsync.value ?? mockRole ?? 'staff';
     final isAdmin = ref.watch(isAdminProvider);
 
     final screens = [
@@ -241,7 +320,6 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
         returns: _returns,
         onAddReturn: (r) => setState(() => _returns.insert(0, r)),
       ),
-      // Module 2: Strict role-gated Analytics view
       AnalyticsScreen(
         isAdmin: isAdmin,
       ),
@@ -254,6 +332,41 @@ class _MainNavigationScreenState extends ConsumerState<MainNavigationScreen> {
     ];
 
     return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            const Text('Warehouse Hub', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: isAdmin ? Colors.green.withOpacity(0.25) : Colors.lightBlue.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: isAdmin ? Colors.greenAccent : Colors.lightBlueAccent, width: 0.8),
+              ),
+              child: Text(
+                isAdmin ? 'Admin' : 'Staff',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: isAdmin ? Colors.greenAccent : Colors.lightBlueAccent,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.shipNavyPrimary,
+        actions: [
+          IconButton(
+            onPressed: () {
+              ref.read(mockRoleProvider.notifier).state = null;
+              ref.read(authServiceProvider).signOut();
+            },
+            icon: const Icon(Icons.logout_rounded, color: Colors.white70, size: 20),
+            tooltip: 'Sign Out',
+          ),
+        ],
+      ),
       body: SafeArea(child: screens[_selectedIndex]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
