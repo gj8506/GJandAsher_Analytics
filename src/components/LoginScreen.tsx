@@ -9,55 +9,37 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [dpaConsent, setDpaConsent] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedAccountType, setSelectedAccountType] = useState<'customer' | 'staff' | 'admin'>('customer');
-  const [customEmail, setCustomEmail] = useState('');
+  const [selectedRole, setSelectedRole] = useState<'customer' | 'admin'>('customer');
+  const [emailInput, setEmailInput] = useState('');
+  const [nameInput, setNameInput] = useState('');
   const [mode, setMode] = useState<'login' | 'signup'>('login');
 
-  const handleSignIn = () => {
+  const handleSignIn = (overrideEmail?: string, overrideRole?: 'customer' | 'admin', overrideName?: string) => {
     if (!dpaConsent) return;
     setIsLoading(true);
 
     setTimeout(() => {
       setIsLoading(false);
 
-      if (mode === 'signup') {
-        // Newly signed in / registered user is ALWAYS a customer by default!
-        // Admin is the only one who can edit in Firestore whether the user is staff.
-        onLoginSuccess({
-          email: customEmail.trim() || 'new.user@gmail.com',
-          name: 'New Registered User',
-          role: 'customer',
-        });
-        return;
-      }
+      const targetEmail = (overrideEmail ?? emailInput).trim().toLowerCase();
+      const isAdmin = targetEmail === 'gj8506@gmail.com' || overrideRole === 'admin';
+      
+      const role = isAdmin ? 'admin' : 'customer';
+      const email = targetEmail || (isAdmin ? 'gj8506@gmail.com' : 'new.customer@gmail.com');
+      const name = overrideName || nameInput.trim() || (isAdmin ? 'GJ & Asher Admin' : 'New Customer');
 
-      // Existing accounts
-      if (selectedAccountType === 'customer') {
-        onLoginSuccess({
-          email: 'maria.santos@gmail.com',
-          name: 'Maria Santos',
-          role: 'customer',
-        });
-      } else if (selectedAccountType === 'staff') {
-        onLoginSuccess({
-          email: 'staff.marcos@gmail.com',
-          name: 'Marcos Dela Cruz (Staff)',
-          role: 'staff',
-        });
-      } else {
-        onLoginSuccess({
-          email: 'nolancaparros.draft@gmail.com',
-          name: 'Nolan Caparros (Admin)',
-          role: 'admin',
-        });
-      }
-    }, 500);
+      onLoginSuccess({
+        email,
+        name,
+        role,
+      });
+    }, 400);
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center items-center px-6 py-8 max-w-md mx-auto w-full">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center items-center px-4 py-8 max-w-md mx-auto w-full">
       {/* Brand Header */}
-      <div className="flex flex-col items-center text-center mb-6">
+      <div className="flex flex-col items-center text-center mb-5">
         <div className="w-16 h-16 rounded-2xl bg-[#0F172A] flex items-center justify-center text-white shadow-xl shadow-slate-900/10 mb-3">
           <Truck className="w-8 h-8 text-white" />
         </div>
@@ -89,112 +71,115 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          Register for First Time
+          Register (First Time)
         </button>
       </div>
 
-      {/* Account Type Selector for Testing / Verification */}
-      {mode === 'login' ? (
-        <div className="w-full bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-              Select Account
-            </span>
-            <span className="text-[10px] text-slate-400 font-mono">
-              Role-guarded
-            </span>
+      {/* Input / Account Selection Card */}
+      <div className="w-full bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs mb-4">
+        {mode === 'signup' ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-[#0F172A] font-bold text-xs mb-1">
+              <Lock className="w-4 h-4 text-sky-600" />
+              <span>Register New Customer Account</span>
+            </div>
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Every newly registered account starts as a <strong>Customer</strong>. Only the Admin can promote staff members.
+            </p>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">Your Full Name</label>
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                placeholder="e.g. Nolan Cortez"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 mb-1">Email Address</label>
+              <input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="your.email@gmail.com"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]"
+              />
+            </div>
           </div>
-
-          <div className="space-y-1.5 text-xs">
-            {/* Customer Account */}
-            <label
-              onClick={() => setSelectedAccountType('customer')}
-              className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                selectedAccountType === 'customer'
-                  ? 'bg-sky-50 border-sky-400 text-sky-950 font-bold'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-sky-200 text-sky-800 flex items-center justify-center font-bold text-[10px]">
-                  MS
-                </div>
-                <div>
-                  <div className="text-xs font-semibold leading-tight">Maria Santos</div>
-                  <div className="text-[10px] text-slate-400">Customer (Orders & Store)</div>
-                </div>
-              </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
-                Customer
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Sign In Options
               </span>
-            </label>
-
-            {/* Staff Account */}
-            <label
-              onClick={() => setSelectedAccountType('staff')}
-              className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                selectedAccountType === 'staff'
-                  ? 'bg-slate-100 border-slate-400 text-slate-900 font-bold'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-800 flex items-center justify-center font-bold text-[10px]">
-                  ST
-                </div>
-                <div>
-                  <div className="text-xs font-semibold leading-tight">Marcos Dela Cruz</div>
-                  <div className="text-[10px] text-slate-400">Staff (Approved by Admin)</div>
-                </div>
-              </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-medium">
-                Staff
+              <span className="text-[10px] text-slate-400 font-mono">
+                Role-guarded
               </span>
-            </label>
+            </div>
 
-            {/* Admin Account */}
-            <label
-              onClick={() => setSelectedAccountType('admin')}
-              className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                selectedAccountType === 'admin'
-                  ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-emerald-200 text-emerald-800 flex items-center justify-center font-bold text-[10px]">
-                  NC
+            {/* Quick account choices */}
+            <div className="space-y-2 text-xs">
+              {/* New Customer */}
+              <div
+                onClick={() => setSelectedRole('customer')}
+                className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                  selectedRole === 'customer'
+                    ? 'bg-sky-50 border-sky-400 text-sky-950 font-bold'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">
+                    CU
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold leading-tight">New Customer</div>
+                    <div className="text-[10px] text-slate-400">Personal Orders & Store Chat</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-xs font-semibold leading-tight">Nolan Caparros</div>
-                  <div className="text-[10px] text-slate-400">Administrator (All Access)</div>
-                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
+                  Customer
+                </span>
               </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold">
-                Admin
-              </span>
-            </label>
+
+              {/* Admin gj8506 */}
+              <div
+                onClick={() => setSelectedRole('admin')}
+                className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                  selectedRole === 'admin'
+                    ? 'bg-emerald-50 border-emerald-400 text-emerald-950 font-bold'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                    GJ
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold leading-tight">gj8506@gmail.com</div>
+                    <div className="text-[10px] text-slate-400">Warehouse Administrator (All Access)</div>
+                  </div>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold">
+                  Admin
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-1">
+              <label className="block text-[10px] font-semibold text-slate-500 mb-1">Or enter custom email:</label>
+              <input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="e.g. gj8506@gmail.com or your email"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]"
+              />
+            </div>
           </div>
-        </div>
-      ) : (
-        /* First-Time Register Card */
-        <div className="w-full bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs mb-4 text-xs">
-          <div className="flex items-center gap-2 text-[#0F172A] font-bold mb-1">
-            <Lock className="w-4 h-4 text-sky-600" />
-            <span>First-Time User Registration</span>
-          </div>
-          <p className="text-[11px] text-slate-500 leading-relaxed mb-3">
-            Every newly registered user is automatically created with the <strong>Customer</strong> role in Cloud Firestore. Only the Admin can promote a user to <strong>Staff</strong>.
-          </p>
-          <input
-            type="email"
-            value={customEmail}
-            onChange={(e) => setCustomEmail(e.target.value)}
-            placeholder="Enter your Google email..."
-            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]"
-          />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* RA 10173 Consent Card */}
       <div className="w-full bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs mb-4">
@@ -208,7 +193,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           />
           <div className="flex-1 text-xs">
             <label htmlFor="dpa-consent" className="cursor-pointer text-slate-700 leading-snug block">
-              I acknowledge and agree to the <strong>Data Privacy Notice (RA 10173)</strong> for parcel tracking & messaging.
+              I acknowledge and agree to the <strong>Data Privacy Notice (RA 10173)</strong> for order tracking & messaging.
             </label>
             <button
               type="button"
@@ -222,10 +207,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         </div>
       </div>
 
-      {/* Google Sign In / Action Button */}
+      {/* Action Button */}
       <div className="w-full space-y-2">
         <button
-          onClick={handleSignIn}
+          onClick={() => handleSignIn(
+            emailInput.trim() ? emailInput.trim() : (selectedRole === 'admin' ? 'gj8506@gmail.com' : 'new.customer@gmail.com'),
+            selectedRole,
+            nameInput.trim() ? nameInput.trim() : (selectedRole === 'admin' ? 'GJ & Asher Admin' : 'New Customer')
+          )}
           disabled={!dpaConsent || isLoading}
           className={`w-full py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-3 transition-all border ${
             dpaConsent
@@ -257,13 +246,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 />
               </svg>
               <span>
-                {mode === 'login'
-                  ? selectedAccountType === 'customer'
-                    ? 'Sign In as Customer (Maria Santos)'
-                    : selectedAccountType === 'staff'
-                    ? 'Sign In as Staff (Marcos Dela Cruz)'
-                    : 'Sign In as Admin (Nolan Caparros)'
-                  : 'Register New Account with Google'}
+                {mode === 'signup'
+                  ? 'Register as New Customer'
+                  : selectedRole === 'admin'
+                  ? 'Sign In as Admin (gj8506@gmail.com)'
+                  : 'Sign In as New Customer'}
               </span>
             </>
           )}

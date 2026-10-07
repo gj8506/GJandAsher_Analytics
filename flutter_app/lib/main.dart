@@ -57,26 +57,14 @@ class AuthGateRouter extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
     final mockRole = ref.watch(mockRoleProvider);
+    final userProfile = ref.watch(currentUserProfileProvider);
 
-    return authState.when(
-      data: (user) {
-        if (user != null || (mockRole != null && mockRole != 'guest')) {
-          return const MainPortalRouter();
-        }
-        return const LoginScreen();
-      },
-      loading: () => const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.shipNavyPrimary),
-        ),
-      ),
-      error: (_, __) {
-        if (mockRole != null && mockRole != 'guest') {
-          return const MainPortalRouter();
-        }
-        return const LoginScreen();
-      },
-    );
+    // If no authenticated user or profile, DIRECTLY open LoginScreen
+    if (userProfile == null && (mockRole == null || mockRole == 'guest') && authState.value == null) {
+      return const LoginScreen();
+    }
+
+    return const MainPortalRouter();
   }
 }
 
@@ -90,13 +78,14 @@ class MainPortalRouter extends ConsumerStatefulWidget {
 class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
   int _selectedIndex = 0;
 
-  final List<Parcel> _parcels = [
+  // Warehouse Hub Parcels (Admin/Staff)
+  final List<Parcel> _warehouseParcels = [
     Parcel(
       id: 'p-1',
       trackingNumber: 'SPXPH0394829104',
       platform: 'Shopee',
       courier: 'SPX Express',
-      customer: 'Maria Santos',
+      customer: 'Customer Order #1',
       phone: '+63 917 *** 4821',
       destination: 'Quezon City, Metro Manila',
       amount: '₱1,250.00',
@@ -112,7 +101,7 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
       trackingNumber: 'LEX-PH-82049102',
       platform: 'Lazada',
       courier: 'Lazada Express',
-      customer: 'Juan Dela Cruz',
+      customer: 'Customer Order #2',
       phone: '+63 928 *** 9934',
       destination: 'Cebu City, Central Visayas',
       amount: '₱3,420.00',
@@ -128,7 +117,7 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
       trackingNumber: 'JT6301948201',
       platform: 'TikTok Shop',
       courier: 'J&T Express',
-      customer: 'Elena Garcia',
+      customer: 'Customer Order #3',
       phone: '+63 905 *** 1276',
       destination: 'Davao City, Davao del Sur',
       amount: '₱890.00',
@@ -141,13 +130,19 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
     ),
   ];
 
+  // Customer Orders List: Starts EMPTY without any items like a preview as requested
+  final List<Parcel> _customerParcels = [];
+
+  // Customer Chat History: Starts EMPTY without any items like a preview as requested
+  final List<ChatMessage> _customerChatMessages = [];
+
   final List<ReturnRecord> _returns = [
     ReturnRecord(
       id: 'ret-1',
       trackingNumber: 'LBC88301928',
       platform: 'Shopee',
       courier: 'Flash Express',
-      customer: 'Roberto Tan',
+      customer: 'Returns Dept',
       reason: 'RTS: Delivery Failed / Customer Unreachable',
       condition: 'Intact (Resellable)',
       refundStatus: 'Pending Inspection',
@@ -197,34 +192,31 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
       rating: 4.9,
       reviewsCount: 96,
     ),
-  ];
-
-  final List<ChatMessage> _chatMessages = [
-    ChatMessage(
-      id: 'msg-1',
-      sender: 'customer',
-      senderName: 'Maria Santos',
-      text: 'Good morning! Could you check if my order #SPXPH0394829104 was dispatched today?',
-      timestamp: 'Today, 09:45 AM',
-      trackingNumber: 'SPXPH0394829104',
-    ),
-    ChatMessage(
-      id: 'msg-2',
-      sender: 'admin',
-      senderName: 'Admin (Nolan Caparros)',
-      text: 'Hello Maria! Yes, your parcel was processed and dispatched at 09:30 AM via SPX Express.',
-      timestamp: 'Today, 09:47 AM',
-      trackingNumber: 'SPXPH0394829104',
+    Product(
+      id: 'prod-4',
+      name: 'Ergonomic LED Desk Lamp Qi Charger',
+      category: 'Home & Living',
+      price: '₱2,100.00',
+      rawPrice: 2100,
+      stock: 32,
+      description: 'Multi-angle dimmable eye-caring task light with 5 color temperatures.',
+      platforms: ['Shopee', 'TikTok Shop'],
+      image: 'https://images.unsplash.com/photo-1534349762230-e0cadf78f5da?w=500&auto=format&fit=crop&q=60',
+      rating: 4.7,
+      reviewsCount: 142,
     ),
   ];
 
-  void _handleSendMessage(String text, String? trackingNumber) {
+  void _handleCustomerSendMessage(String text, String? trackingNumber) {
+    final userProfile = ref.read(currentUserProfileProvider);
+    final senderName = userProfile?.displayName ?? 'New Customer';
+
     setState(() {
-      _chatMessages.add(
+      _customerChatMessages.add(
         ChatMessage(
           id: 'msg-${DateTime.now().millisecondsSinceEpoch}',
           sender: 'customer',
-          senderName: 'Maria Santos',
+          senderName: senderName,
           text: text,
           timestamp: 'Just now',
           trackingNumber: trackingNumber,
@@ -232,16 +224,16 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
       );
     });
 
-    // Auto-reply simulation from Admin
+    // Auto-reply simulation from Admin gj8506
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (mounted) {
         setState(() {
-          _chatMessages.add(
+          _customerChatMessages.add(
             ChatMessage(
               id: 'msg-admin-${DateTime.now().millisecondsSinceEpoch}',
               sender: 'admin',
-              senderName: 'Admin (Nolan Caparros)',
-              text: 'Thanks for reaching out! We have checked your request and updated the fulfillment team.',
+              senderName: 'Admin (gj8506)',
+              text: 'Thanks for messaging GJ & Asher Hub! Our fulfillment team is reviewing your inquiry.',
               timestamp: 'Just now',
             ),
           );
@@ -253,9 +245,10 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
   void _showParcelDetailModal(Parcel parcel) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
-        return Padding(
+        return SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -264,7 +257,13 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(parcel.trackingNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Expanded(
+                    child: Text(
+                      parcel.trackingNumber,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                   IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
                 ],
               ),
@@ -281,39 +280,43 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
     );
   }
 
+  void _handleSignOut() {
+    ref.read(mockRoleProvider.notifier).state = null;
+    ref.read(currentUserProfileProvider.notifier).state = null;
+    ref.read(authServiceProvider).signOut();
+  }
+
   @override
   Widget build(BuildContext context) {
     final activePortal = ref.watch(portalProvider);
 
-    // If Customer Portal is selected
+    // If Customer Portal is active: pass empty parcels & empty chat messages
     if (activePortal == 'customer') {
       return CustomerPortalScreen(
-        parcels: _parcels,
+        parcels: _customerParcels,
         products: _products,
-        chatMessages: _chatMessages,
-        onSendMessage: _handleSendMessage,
+        chatMessages: _customerChatMessages,
+        onSendMessage: _handleCustomerSendMessage,
         onSelectParcel: _showParcelDetailModal,
-        onSignOut: () {
-          ref.read(mockRoleProvider.notifier).state = null;
-          ref.read(authServiceProvider).signOut();
-        },
+        onSignOut: _handleSignOut,
       );
     }
 
-    // Warehouse Logistics Hub
+    // Warehouse Logistics Hub (Admin gj8506 & Staff)
     final roleAsync = ref.watch(userRoleProvider);
     final mockRole = ref.watch(mockRoleProvider);
-    final activeRole = roleAsync.value ?? mockRole ?? 'staff';
-    final isAdmin = ref.watch(isAdminProvider);
+    final userProfile = ref.watch(currentUserProfileProvider);
+    final activeRole = userProfile?.role ?? roleAsync.value ?? mockRole ?? 'staff';
+    final isAdmin = activeRole.toLowerCase() == 'admin';
 
     final screens = [
       ParcelsScreen(
-        parcels: _parcels,
+        parcels: _warehouseParcels,
         onSelectParcel: _showParcelDetailModal,
         userRole: '${activeRole.toUpperCase()} MODE',
       ),
       DispatchScreen(
-        onAddParcel: (p) => setState(() => _parcels.insert(0, p)),
+        onAddParcel: (p) => setState(() => _warehouseParcels.insert(0, p)),
         onNavigateToParcels: () => setState(() => _selectedIndex = 0),
       ),
       ReturnsScreen(
@@ -335,7 +338,13 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
       appBar: AppBar(
         title: Row(
           children: [
-            const Text('Warehouse Hub', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Flexible(
+              child: Text(
+                'Warehouse Hub',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -358,10 +367,7 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
         backgroundColor: AppColors.shipNavyPrimary,
         actions: [
           IconButton(
-            onPressed: () {
-              ref.read(mockRoleProvider.notifier).state = null;
-              ref.read(authServiceProvider).signOut();
-            },
+            onPressed: _handleSignOut,
             icon: const Icon(Icons.logout_rounded, color: Colors.white70, size: 20),
             tooltip: 'Sign Out',
           ),

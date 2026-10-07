@@ -135,23 +135,30 @@ class _DispatchScreenState extends State<DispatchScreen> {
               return Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isChosen ? AppColors.shipNavyPrimary : Colors.white,
-                      foregroundColor: isChosen ? Colors.white : Colors.black87,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: Colors.grey.shade300),
+                  child: SizedBox(
+                    height: 38,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isChosen ? AppColors.shipNavyPrimary : Colors.white,
+                        foregroundColor: isChosen ? Colors.white : Colors.black87,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(color: isChosen ? AppColors.shipNavyPrimary : Colors.grey.shade300),
+                        ),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          platform = p;
+                          courier = couriersMap[p]!.first;
+                        });
+                      },
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(p, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                       ),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        platform = p;
-                        courier = couriersMap[p]!.first;
-                      });
-                    },
-                    child: Text(p, style: const TextStyle(fontSize: 11)),
                   ),
                 ),
               );

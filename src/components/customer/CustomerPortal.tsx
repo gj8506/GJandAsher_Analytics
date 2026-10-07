@@ -23,8 +23,8 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
   onSendMessage,
   onSelectParcel,
   onSignOut,
-  customerName = 'Maria Santos',
-  customerEmail = 'maria.santos@gmail.com',
+  customerName = 'New Customer',
+  customerEmail = 'new.customer@gmail.com',
 }) => {
   const [currentTab, setCurrentTab] = useState<'parcels' | 'store' | 'chat' | 'account'>('parcels');
   const [pendingAttachment, setPendingAttachment] = useState<{

@@ -37,23 +37,25 @@ class _CustomerStoreScreenState extends State<CustomerStoreScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Available Products',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.shipNavyPrimary),
-                ),
-                Text(
-                  'In-stock items ready for immediate dispatch',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Available Products',
+                    style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: AppColors.shipNavyPrimary),
+                  ),
+                  Text(
+                    'In-stock items ready for immediate dispatch',
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.shopping_bag_outlined, color: Colors.green, size: 22),
+              child: const Icon(Icons.shopping_bag_outlined, color: Colors.green, size: 20),
             ),
           ],
         ),
@@ -64,12 +66,13 @@ class _CustomerStoreScreenState extends State<CustomerStoreScreen> {
           onChanged: (val) => setState(() => searchQuery = val),
           decoration: InputDecoration(
             hintText: 'Search products, keyboards, earbuds...',
-            prefixIcon: const Icon(Icons.search, size: 20, color: Colors.grey),
-            contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+            hintStyle: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+            prefixIcon: const Icon(Icons.search, size: 18, color: Colors.grey),
+            contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 14),
             filled: true,
             fillColor: Colors.white,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade300)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade300)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
           ),
         ),
         const SizedBox(height: 10),
@@ -83,7 +86,7 @@ class _CustomerStoreScreenState extends State<CustomerStoreScreen> {
               return Padding(
                 padding: const EdgeInsets.only(right: 6),
                 child: ChoiceChip(
-                  label: Text(cat, style: TextStyle(fontSize: 11, fontWeight: isChosen ? FontWeight.bold : FontWeight.normal)),
+                  label: Text(cat, style: TextStyle(fontSize: 10.5, fontWeight: isChosen ? FontWeight.bold : FontWeight.normal)),
                   selected: isChosen,
                   selectedColor: AppColors.shipNavyPrimary,
                   labelStyle: TextStyle(color: isChosen ? Colors.white : Colors.black87),
@@ -95,13 +98,13 @@ class _CustomerStoreScreenState extends State<CustomerStoreScreen> {
         ),
         const SizedBox(height: 14),
 
-        // Grid of products
+        // Grid of products with safe aspect ratio
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 0.72,
+            childAspectRatio: 0.64,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
           ),
@@ -128,13 +131,13 @@ class _CustomerStoreScreenState extends State<CustomerStoreScreen> {
                             top: 6,
                             right: 6,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                               decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(10)),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.star, color: Colors.amber, size: 11),
+                                  const Icon(Icons.star, color: Colors.amber, size: 10),
                                   const SizedBox(width: 2),
-                                  Text('${prod.rating}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  Text('${prod.rating}', style: const TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ),
@@ -143,9 +146,9 @@ class _CustomerStoreScreenState extends State<CustomerStoreScreen> {
                             bottom: 6,
                             left: 6,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                               decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(6)),
-                              child: Text('${prod.stock} in stock', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                              child: Text('${prod.stock} in stock', style: const TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ],
@@ -162,20 +165,27 @@ class _CustomerStoreScreenState extends State<CustomerStoreScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(prod.category.toUpperCase(), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey)),
+                                Text(prod.category.toUpperCase(), style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.grey)),
                                 const SizedBox(height: 2),
-                                Text(prod.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, height: 1.2)),
+                                Text(prod.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10.5, height: 1.2)),
                               ],
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(prod.price, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppColors.shipNavyPrimary)),
+                                Flexible(
+                                  child: Text(
+                                    prod.price,
+                                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: AppColors.shipNavyPrimary),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                                 IconButton(
                                   constraints: const BoxConstraints(),
                                   padding: EdgeInsets.zero,
-                                  icon: const Icon(Icons.chat_bubble_outline, size: 16, color: Colors.green),
+                                  icon: const Icon(Icons.chat_bubble_outline, size: 15, color: Colors.green),
                                   onPressed: () => widget.onInquireProduct(prod),
+                                  tooltip: 'Ask Admin',
                                 ),
                               ],
                             ),
@@ -196,9 +206,10 @@ class _CustomerStoreScreenState extends State<CustomerStoreScreen> {
   void _showProductDetails(BuildContext context, Product prod) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
-        return Padding(
+        return SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -207,37 +218,50 @@ class _CustomerStoreScreenState extends State<CustomerStoreScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(child: Text(prod.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+                  Expanded(
+                    child: Text(
+                      prod.name,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.shipNavyPrimary),
+                    ),
+                  ),
                   IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
                 ],
               ),
-              const SizedBox(height: 4),
-              Text(prod.price, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.shipNavyPrimary)),
               const SizedBox(height: 8),
-              Text(prod.description, style: const TextStyle(fontSize: 12, color: Colors.black87, height: 1.4)),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(10)),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Warehouse Stock (MNL-HUB-04)', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                    Text('${prod.stock} units available', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.green)),
-                  ],
-                ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(prod.image, height: 180, width: double.infinity, fit: BoxFit.cover),
               ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(prod.price, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.shipNavyPrimary)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(8)),
+                    child: Text('${prod.stock} units ready to pack', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(prod.description, style: const TextStyle(fontSize: 12, color: Colors.black87, height: 1.4)),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
+                height: 46,
                 child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.shipNavyPrimary, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.shipNavyPrimary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                   onPressed: () {
                     Navigator.pop(ctx);
                     widget.onInquireProduct(prod);
                   },
-                  icon: const Icon(Icons.chat),
-                  label: const Text('Inquire with Admin in Chat', style: TextStyle(fontWeight: FontWeight.bold)),
+                  icon: const Icon(Icons.chat_bubble_outline, size: 16),
+                  label: const Text('Inquire with Admin in Chat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
                 ),
               ),
             ],

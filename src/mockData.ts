@@ -286,70 +286,17 @@ export const INITIAL_PRODUCTS: import('./types').Product[] = [
   }
 ];
 
-export const INITIAL_CHAT_MESSAGES: import('./types').ChatMessage[] = [
-  {
-    id: 'msg-1',
-    sender: 'customer',
-    senderName: 'Maria Santos',
-    text: 'Good morning! Could you check if my order #SPXPH0394829104 was dispatched today?',
-    timestamp: 'Today, 09:45 AM',
-    trackingNumber: 'SPXPH0394829104'
-  },
-  {
-    id: 'msg-2',
-    sender: 'admin',
-    senderName: 'Admin (Nolan Caparros)',
-    text: 'Hello Maria! Yes, your parcel was processed and dispatched at 09:30 AM via SPX Express. It is currently headed to the Quezon City Sort Center.',
-    timestamp: 'Today, 09:47 AM',
-    trackingNumber: 'SPXPH0394829104'
-  },
-  {
-    id: 'msg-3',
-    sender: 'customer',
-    senderName: 'Maria Santos',
-    text: 'Awesome, thank you so much! Also, do you have more stock for the RGB mechanical keyboard in brown switch?',
-    timestamp: 'Today, 10:12 AM'
-  },
-  {
-    id: 'msg-4',
-    sender: 'admin',
-    senderName: 'Admin (Nolan Caparros)',
-    text: 'Yes! We have 19 units left in the central hub. You can place an order directly from the Store tab anytime!',
-    timestamp: 'Today, 10:15 AM'
-  }
-];
+export const INITIAL_CUSTOMER_PARCELS: import('./types').Parcel[] = [];
+
+export const INITIAL_CHAT_MESSAGES: import('./types').ChatMessage[] = [];
 
 export const INITIAL_USERS: import('./types').UserRecord[] = [
   {
-    uid: 'usr-admin-01',
-    email: 'nolancaparros.draft@gmail.com',
-    displayName: 'Nolan Caparros',
+    uid: 'usr-admin-gj8506',
+    email: 'gj8506@gmail.com',
+    displayName: 'GJ & Asher Admin',
     role: 'admin',
     registeredAt: 'Oct 01, 2026',
-    dpaConsent: true,
-  },
-  {
-    uid: 'usr-staff-01',
-    email: 'staff.marcos@gmail.com',
-    displayName: 'Marcos Dela Cruz',
-    role: 'staff',
-    registeredAt: 'Oct 02, 2026',
-    dpaConsent: true,
-  },
-  {
-    uid: 'usr-cust-01',
-    email: 'maria.santos@gmail.com',
-    displayName: 'Maria Santos',
-    role: 'customer',
-    registeredAt: 'Oct 03, 2026',
-    dpaConsent: true,
-  },
-  {
-    uid: 'usr-cust-02',
-    email: 'new.user@gmail.com',
-    displayName: 'Alex Reyes (New Sign-In)',
-    role: 'customer',
-    registeredAt: 'Today, 08:30 AM',
     dpaConsent: true,
   },
 ];

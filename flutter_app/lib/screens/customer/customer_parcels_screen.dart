@@ -23,6 +23,13 @@ class CustomerParcelsScreen extends StatefulWidget {
 class _CustomerParcelsScreenState extends State<CustomerParcelsScreen> {
   String searchQuery = '';
   String statusFilter = 'All'; // All, Active, Delivered
+  final TextEditingController _trackingInput = TextEditingController();
+
+  @override
+  void dispose() {
+    _trackingInput.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,22 +54,24 @@ class _CustomerParcelsScreenState extends State<CustomerParcelsScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'My Ordered Parcels',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.shipNavyPrimary,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'My Ordered Parcels',
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.shipNavyPrimary,
+                    ),
                   ),
-                ),
-                Text(
-                  'Live tracking across Shopee, Lazada & TikTok',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
+                  Text(
+                    'Live tracking across Shopee, Lazada & TikTok',
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -85,16 +94,17 @@ class _CustomerParcelsScreenState extends State<CustomerParcelsScreen> {
           onChanged: (val) => setState(() => searchQuery = val),
           decoration: InputDecoration(
             hintText: 'Search by tracking #, item, courier...',
-            prefixIcon: const Icon(Icons.search, size: 20, color: Colors.grey),
-            contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+            hintStyle: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+            prefixIcon: const Icon(Icons.search, size: 18, color: Colors.grey),
+            contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 14),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
           ),
@@ -107,19 +117,23 @@ class _CustomerParcelsScreenState extends State<CustomerParcelsScreen> {
             final isChosen = statusFilter == tab;
             return Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isChosen ? AppColors.shipNavyPrimary : Colors.white,
-                    foregroundColor: isChosen ? Colors.white : Colors.black87,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: BorderSide(color: isChosen ? AppColors.shipNavyPrimary : Colors.grey.shade300),
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: SizedBox(
+                  height: 34,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isChosen ? AppColors.shipNavyPrimary : Colors.white,
+                      foregroundColor: isChosen ? Colors.white : Colors.black87,
+                      elevation: 0,
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: isChosen ? AppColors.shipNavyPrimary : Colors.grey.shade300),
+                      ),
                     ),
+                    onPressed: () => setState(() => statusFilter = tab),
+                    child: Text(tab, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                   ),
-                  onPressed: () => setState(() => statusFilter = tab),
-                  child: Text(tab, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
               ),
             );
@@ -127,18 +141,37 @@ class _CustomerParcelsScreenState extends State<CustomerParcelsScreen> {
         ),
         const SizedBox(height: 14),
 
-        // Parcels List
+        // Parcels List: Clean empty state if empty
         if (filtered.isEmpty)
           Container(
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 36),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
             child: Column(
-              children: const [
-                Icon(Icons.inventory_2_outlined, size: 40, color: Colors.grey),
-                SizedBox(height: 8),
-                Text('No ordered parcels found', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                SizedBox(height: 4),
-                Text('Your shipments will appear here once processed by warehouse staff.', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: Colors.grey)),
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.inventory_2_outlined, size: 30, color: AppColors.shipTealAccent),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'No Ordered Parcels Yet',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.shipNavyPrimary),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'You currently have no active or historical parcels logged under your account. When warehouse staff dispatches an order for you, it will appear here in real time.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 11, color: Colors.grey, height: 1.4),
+                ),
               ],
             ),
           )
@@ -159,120 +192,71 @@ class _CustomerParcelsScreenState extends State<CustomerParcelsScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       color: Colors.white,
       elevation: 0.5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () => widget.onSelectParcel(parcel),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: platformColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          parcel.platform,
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: platformColor),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        parcel.trackingNumber,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.shipNavyPrimary),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Color(int.parse(parcel.statusColorHex.replaceFirst('#', '0xFF'))).withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      parcel.status,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Color(int.parse(parcel.statusColorHex.replaceFirst('#', '0xFF'))),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                parcel.items ?? 'E-Commerce Package',
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-              ),
-              const SizedBox(height: 10),
-              // Step timeline
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey.shade200)),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: platformColor.withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
+                  child: Text(parcel.platform, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: platformColor)),
                 ),
-                child: Column(
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: Color(int.parse(parcel.statusColorHex.replaceAll('#', '0xFF'))).withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
+                  child: Text(
+                    parcel.status,
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(int.parse(parcel.statusColorHex.replaceAll('#', '0xFF')))),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(parcel.trackingNumber, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.shipNavyPrimary)),
+            if (parcel.items != null) ...[
+              const SizedBox(height: 3),
+              Text(parcel.items!, style: const TextStyle(fontSize: 11, color: Colors.black87), maxLines: 1, overflow: TextOverflow.ellipsis),
+            ],
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(parcel.amount, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.shipNavyPrimary)),
+                Row(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('Dispatched', style: TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold)),
-                        Text('In Transit', style: TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold)),
-                        Text('Delivered', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
-                      ],
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => widget.onInquireInChat(parcel),
+                      icon: const Icon(Icons.chat_bubble_outline, size: 12, color: Colors.green),
+                      label: const Text('Ask Admin', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
                     ),
-                    const SizedBox(height: 6),
-                    LinearProgressIndicator(
-                      value: parcel.status == 'Delivered' ? 1.0 : parcel.status == 'In Transit' ? 0.65 : 0.35,
-                      backgroundColor: Colors.grey.shade200,
-                      color: parcel.status == 'Delivered' ? Colors.green : AppColors.shipTealAccent,
-                      minHeight: 5,
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('${parcel.courier}', style: const TextStyle(fontSize: 10, color: Colors.black54)),
-                        Text('${parcel.dispatchedAt}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                      ],
+                    const SizedBox(width: 6),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.shipNavyPrimary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () => widget.onSelectParcel(parcel),
+                      child: const Text('View', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(parcel.amount, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.shipNavyPrimary)),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.shipTealContainer,
-                      foregroundColor: AppColors.shipNavyPrimary,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    onPressed: () => widget.onInquireInChat(parcel),
-                    icon: const Icon(Icons.chat_bubble_outline, size: 14),
-                    label: const Text('Ask Support', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );

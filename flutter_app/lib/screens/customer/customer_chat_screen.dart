@@ -37,6 +37,13 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _textController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   void _sendMessage() {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
@@ -69,8 +76,8 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                 children: [
                   CircleAvatar(
                     backgroundColor: AppColors.shipNavyPrimary,
-                    radius: 20,
-                    child: const Text('NC', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                    radius: 19,
+                    child: const Text('GJ', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                   ),
                   Positioned(
                     bottom: 0,
@@ -84,88 +91,131 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
                 ],
               ),
               const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Admin Support (Nolan Caparros)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.shipNavyPrimary)),
-                  Text('GJ & Asher Logistics Management • Online', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Admin Support (gj8506)',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.shipNavyPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'GJ & Asher Logistics Hub • Live Help',
+                      style: TextStyle(fontSize: 10, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
         const Divider(height: 1),
 
-        // Message List
+        // Message List or Empty State
         Expanded(
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(16),
-            itemCount: widget.messages.length,
-            itemBuilder: (ctx, idx) {
-              final msg = widget.messages[idx];
-              final isCustomer = msg.sender == 'customer';
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Column(
-                  crossAxisAlignment: isCustomer ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${msg.senderName} • ${msg.timestamp}',
-                      style: const TextStyle(fontSize: 9, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isCustomer ? AppColors.shipNavyPrimary : Colors.white,
-                        borderRadius: BorderRadius.circular(16).copyWith(
-                          topRight: isCustomer ? Radius.zero : const Radius.circular(16),
-                          topLeft: !isCustomer ? Radius.zero : const Radius.circular(16),
+          child: widget.messages.isEmpty
+              ? Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.chat_bubble_outline, size: 28, color: AppColors.shipTealAccent),
                         ),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4)],
-                      ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'No Messages Yet',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.shipNavyPrimary),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Send a message to GJ & Asher Warehouse Admin to ask questions about your dispatches, returns, or product availability.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 11, color: Colors.grey, height: 1.4),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: widget.messages.length,
+                  itemBuilder: (ctx, idx) {
+                    final msg = widget.messages[idx];
+                    final isCustomer = msg.sender == 'customer';
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: isCustomer ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                         children: [
-                          if (msg.trackingNumber != null) ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                              margin: const EdgeInsets.only(bottom: 6),
-                              decoration: BoxDecoration(
-                                color: isCustomer ? Colors.white12 : Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(6),
+                          Text(
+                            '${msg.senderName} • ${msg.timestamp}',
+                            style: const TextStyle(fontSize: 9, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isCustomer ? AppColors.shipNavyPrimary : Colors.white,
+                              borderRadius: BorderRadius.circular(16).copyWith(
+                                topRight: isCustomer ? Radius.zero : const Radius.circular(16),
+                                topLeft: !isCustomer ? Radius.zero : const Radius.circular(16),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.inventory_2, size: 12, color: isCustomer ? Colors.lightBlue.shade200 : Colors.blue),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '#${msg.trackingNumber}',
-                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isCustomer ? Colors.lightBlue.shade200 : Colors.blue),
+                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4)],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (msg.trackingNumber != null) ...[
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                    margin: const EdgeInsets.only(bottom: 6),
+                                    decoration: BoxDecoration(
+                                      color: isCustomer ? Colors.white12 : Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.inventory_2, size: 12, color: isCustomer ? Colors.lightBlue.shade200 : Colors.blue),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '#${msg.trackingNumber}',
+                                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isCustomer ? Colors.lightBlue.shade200 : Colors.blue),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
-                              ),
+                                Text(
+                                  msg.text,
+                                  style: TextStyle(fontSize: 12, color: isCustomer ? Colors.white : Colors.black87, height: 1.3),
+                                ),
+                              ],
                             ),
-                          ],
-                          Text(
-                            msg.text,
-                            style: TextStyle(fontSize: 12, color: isCustomer ? Colors.white : Colors.black87, height: 1.3),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
 
-        // Quick prompts
+        // Quick prompt chips
         Container(
           height: 38,
           color: Colors.grey.shade100,
@@ -195,8 +245,10 @@ class _CustomerChatScreenState extends State<CustomerChatScreen> {
               Expanded(
                 child: TextField(
                   controller: _textController,
+                  style: const TextStyle(fontSize: 12),
                   decoration: const InputDecoration(
                     hintText: 'Type your message to Admin...',
+                    hintStyle: TextStyle(fontSize: 11, color: Colors.grey),
                     contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
                   ),

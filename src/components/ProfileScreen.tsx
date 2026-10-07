@@ -33,8 +33,8 @@ interface ProfileScreenProps {
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   userRole,
   currentUser = {
-    email: 'nolancaparros.draft@gmail.com',
-    name: 'Nolan Caparros',
+    email: 'gj8506@gmail.com',
+    name: 'GJ & Asher Admin',
     role: 'admin',
   },
   users = [],

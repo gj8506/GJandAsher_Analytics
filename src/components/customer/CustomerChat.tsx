@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, Parcel, Product } from '../../types';
-import { Send, Shield, Package, ShoppingBag, CheckCheck, Clock, User, Sparkles } from 'lucide-react';
+import { Send, Shield, Package, ShoppingBag, CheckCheck, Clock, User, Sparkles, MessageSquare } from 'lucide-react';
 
 interface CustomerChatProps {
   messages: ChatMessage[];
@@ -50,14 +50,14 @@ export const CustomerChat: React.FC<CustomerChatProps> = ({
         <div className="flex items-center gap-2.5">
           <div className="relative">
             <div className="w-10 h-10 rounded-full bg-[#0F172A] text-white flex items-center justify-center font-bold text-xs">
-              NC
+              GJ
             </div>
             <span className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-white absolute bottom-0 right-0" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <h2 className="text-xs font-bold text-[#0F172A]">
-                Admin Support (Nolan Caparros)
+                Admin Support (gj8506)
               </h2>
               <span className="text-[9px] bg-sky-100 text-[#0EA5E9] font-bold px-1.5 py-0.2 rounded-md">
                 Admin
@@ -84,6 +84,19 @@ export const CustomerChat: React.FC<CustomerChatProps> = ({
             Messages are recorded securely in compliance with RA 10173 Data Privacy Act.
           </p>
         </div>
+
+        {/* Empty State when no messages exist */}
+        {messages.length === 0 && (
+          <div className="py-12 text-center text-slate-400">
+            <div className="w-12 h-12 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center mx-auto mb-2">
+              <MessageSquare className="w-6 h-6" />
+            </div>
+            <p className="text-xs font-bold text-slate-700">No conversation history yet</p>
+            <p className="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">
+              Send a message to GJ & Asher Warehouse Admin to ask questions regarding dispatches, returns, or product availability.
+            </p>
+          </div>
+        )}
 
         {messages.map((msg) => {
           const isCustomer = msg.sender === 'customer';
@@ -138,58 +151,54 @@ export const CustomerChat: React.FC<CustomerChatProps> = ({
             onClick={() => {
               setInputText(prompt);
             }}
-            className="text-[10px] font-medium bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 shadow-2xs"
+            className="text-[10px] px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 shrink-0 font-medium hover:border-slate-300 transition-colors cursor-pointer"
           >
             {prompt}
           </button>
         ))}
       </div>
 
-      {/* Input Bar */}
+      {/* Attachment indicator if present */}
+      {pendingAttachment && (
+        <div className="px-4 py-2 bg-sky-50 border-t border-sky-100 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2 text-sky-900 font-medium">
+            <Package className="w-3.5 h-3.5 text-sky-600" />
+            <span>Inquiring about: {pendingAttachment.name}</span>
+          </div>
+          {onClearAttachment && (
+            <button
+              onClick={onClearAttachment}
+              className="text-[10px] font-bold text-sky-700 hover:underline"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Input Form */}
       <form
         onSubmit={handleSend}
-        className="p-3 bg-white border-t border-slate-200 flex flex-col gap-2"
+        className="p-3 bg-white border-t border-slate-200 flex items-center gap-2"
       >
-        {pendingAttachment && (
-          <div className="flex items-center justify-between bg-sky-50 border border-sky-200 rounded-xl px-2.5 py-1 text-xs">
-            <div className="flex items-center gap-1.5 text-sky-800">
-              <Package className="w-3.5 h-3.5" />
-              <span className="font-semibold text-[11px]">
-                Attached: {pendingAttachment.name}
-              </span>
-            </div>
-            {onClearAttachment && (
-              <button
-                type="button"
-                onClick={onClearAttachment}
-                className="text-xs text-sky-600 hover:text-sky-900 font-bold"
-              >
-                Remove
-              </button>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Type your message to Admin..."
-            className="flex-1 px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9] focus:bg-white"
-          />
-          <button
-            type="submit"
-            disabled={!inputText.trim() && !pendingAttachment}
-            className={`p-2.5 rounded-xl transition-all ${
-              inputText.trim() || pendingAttachment
-                ? 'bg-[#0F172A] text-white hover:bg-slate-800 shadow-xs cursor-pointer'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-            }`}
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </div>
+        <input
+          type="text"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          placeholder="Ask Admin about orders or products..."
+          className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0EA5E9]"
+        />
+        <button
+          type="submit"
+          disabled={!inputText.trim() && !pendingAttachment}
+          className={`p-2.5 rounded-xl font-bold transition-all ${
+            inputText.trim() || pendingAttachment
+              ? 'bg-[#0F172A] hover:bg-slate-800 text-white cursor-pointer shadow-xs'
+              : 'bg-slate-100 text-slate-300 cursor-not-allowed'
+          }`}
+        >
+          <Send className="w-4 h-4" />
+        </button>
       </form>
     </div>
   );

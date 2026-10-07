@@ -34,6 +34,7 @@ export const App: React.FC = () => {
 
   const [selectedTab, setSelectedTab] = useState<number>(0);
   const [parcels, setParcels] = useState<Parcel[]>(INITIAL_PARCELS);
+  const [customerParcels, setCustomerParcels] = useState<Parcel[]>([]);
   const [returns, setReturns] = useState<ReturnRecord[]>(INITIAL_RETURNS);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
@@ -91,6 +92,9 @@ export const App: React.FC = () => {
 
   const handleAddParcel = (newParcel: Parcel) => {
     setParcels((prev) => [newParcel, ...prev]);
+    if (newParcel.customer.toLowerCase() === currentUser.displayName.toLowerCase()) {
+      setCustomerParcels((prev) => [newParcel, ...prev]);
+    }
   };
 
   const handleAddReturn = (newReturn: ReturnRecord) => {
@@ -105,7 +109,7 @@ export const App: React.FC = () => {
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       sender: 'customer',
-      senderName: currentUser.displayName || 'Maria Santos',
+      senderName: currentUser.displayName || 'New Customer',
       text: text || `Inquiring about ${attachedItem?.name}`,
       timestamp: 'Just now',
       trackingNumber: attachedItem?.type === 'parcel' ? attachedItem.name.match(/#(\w+)/)?.[1] : undefined,
@@ -114,7 +118,7 @@ export const App: React.FC = () => {
 
     setChatMessages((prev) => [...prev, newMsg]);
 
-    // Simulated Smart Admin Response from Nolan Caparros after 1 second
+    // Simulated Smart Admin Response from Admin gj8506 after 1 second
     setTimeout(() => {
       let replyText = 'Thank you for reaching out to GJ & Asher Logistics Hub. Our fulfillment team is reviewing your request.';
       const lower = text.toLowerCase();
@@ -132,7 +136,7 @@ export const App: React.FC = () => {
       const adminReply: ChatMessage = {
         id: `msg-admin-${Date.now()}`,
         sender: 'admin',
-        senderName: 'Admin (Nolan Caparros)',
+        senderName: 'Admin (gj8506)',
         text: replyText,
         timestamp: 'Just now',
       };
@@ -150,7 +154,7 @@ export const App: React.FC = () => {
   if (activePortal === 'customer') {
     return (
       <CustomerPortal
-        parcels={parcels}
+        parcels={customerParcels}
         products={products}
         chatMessages={chatMessages}
         onSendMessage={handleSendMessage}

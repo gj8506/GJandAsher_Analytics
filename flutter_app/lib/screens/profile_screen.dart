@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
@@ -23,54 +22,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _userSearchQuery = '';
   String _roleFilter = 'all';
 
-  // Mock list of users reflecting Cloud Firestore users collection
-  final List<Map<String, String>> _usersList = [
-    {
-      'uid': 'usr-admin-01',
-      'name': 'Nolan Caparros',
-      'email': 'nolancaparros.draft@gmail.com',
-      'role': 'admin',
-      'tag': '#ADM-9921',
-    },
-    {
-      'uid': 'usr-staff-02',
-      'name': 'Marcos Dela Cruz',
-      'email': 'staff.marcos@gmail.com',
-      'role': 'staff',
-      'tag': '#STF-4810',
-    },
-    {
-      'uid': 'usr-cust-03',
-      'name': 'Alex Reyes (New User)',
-      'email': 'new.user@gmail.com',
-      'role': 'customer',
-      'tag': '#CST-1039',
-    },
-    {
-      'uid': 'usr-cust-04',
-      'name': 'Maria Santos',
-      'email': 'maria.santos@gmail.com',
-      'role': 'customer',
-      'tag': '#CST-7721',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    final user = authState.value;
-    final isAdmin = widget.userRole.toLowerCase() == 'admin';
+    final firebaseUser = authState.value;
+    final userProfile = ref.watch(currentUserProfileProvider);
+    final usersList = ref.watch(directoryUsersProvider);
+
+    final isAdmin = widget.userRole.toLowerCase() == 'admin' ||
+        (userProfile?.role.toLowerCase() == 'admin');
 
     // Filter users list based on search and role
-    final filteredUsers = _usersList.where((u) {
+    final filteredUsers = usersList.where((u) {
       final q = _userSearchQuery.trim().toLowerCase();
       final matchesQuery = q.isEmpty ||
-          u['name']!.toLowerCase().contains(q) ||
-          u['email']!.toLowerCase().contains(q) ||
-          u['tag']!.toLowerCase().contains(q);
+          (u['name'] ?? '').toLowerCase().contains(q) ||
+          (u['email'] ?? '').toLowerCase().contains(q) ||
+          (u['tag'] ?? '').toLowerCase().contains(q);
       final matchesRole = _roleFilter == 'all' || u['role'] == _roleFilter;
       return matchesQuery && matchesRole;
     }).toList();
+
+    final displayName = userProfile?.displayName ??
+        firebaseUser?.displayName ??
+        (isAdmin ? 'GJ & Asher Admin' : 'Staff Member');
+    final displayEmail = userProfile?.email ??
+        firebaseUser?.email ??
+        (isAdmin ? 'gj8506@gmail.com' : 'staff@shiptracker.ph');
+    final displayTag = userProfile?.tag ?? (isAdmin ? '#ADM-8506' : '#STF-1001');
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
@@ -78,22 +57,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         Center(
           child: Column(
             children: const [
-              Icon(Icons.person, size: 40, color: AppColors.shipNavySecondary),
-              SizedBox(height: 8),
+              Icon(Icons.person, size: 36, color: AppColors.shipNavySecondary),
+              SizedBox(height: 6),
               Text(
                 'User Profile & Security',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.shipNavyPrimary),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.shipNavyPrimary),
               ),
-              SizedBox(height: 4),
+              SizedBox(height: 3),
               Text(
                 'Google Sign-In, RA 10173 Data Privacy consent, and Firestore Role syncing.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(fontSize: 11, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
 
         // User profile card
         Card(
@@ -108,33 +87,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Row(
                   children: [
                     CircleAvatar(
-                      radius: 26,
+                      radius: 24,
                       backgroundColor: AppColors.shipNavyPrimary,
-                      backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
-                      child: user?.photoURL == null
-                          ? const Icon(Icons.person, size: 28, color: Colors.white)
-                          : null,
+                      child: Text(
+                        isAdmin ? 'GJ' : 'ST',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            user?.displayName ?? 'Nolan Caparros',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.shipNavyPrimary),
+                            displayName,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.shipNavyPrimary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            user?.email ?? 'nolancaparros.draft@gmail.com',
+                            displayEmail,
                             style: const TextStyle(fontSize: 11, color: Colors.grey, fontFamily: 'monospace'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Row(
-                            children: const [
-                              Icon(Icons.check_circle, size: 12, color: Colors.green),
-                              SizedBox(width: 4),
-                              Text('Google Auth Verified', style: TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
+                            children: [
+                              const Icon(Icons.check_circle, size: 12, color: Colors.green),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  'Auth Verified • $displayTag',
+                                  style: const TextStyle(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -142,19 +131,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 const Divider(height: 1),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
 
-                // Read-only role display (no manual switching button)
+                // Read-only role display
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
-                        Text('Active System Role', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                        Text('Synced from Cloud Firestore', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                        Text('Active System Role', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                        Text('Synced from Cloud Firestore', style: TextStyle(fontSize: 9.5, color: Colors.grey)),
                       ],
                     ),
                     Container(
@@ -213,49 +202,53 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     });
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(14),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.indigo.shade50,
-                                borderRadius: BorderRadius.circular(10),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(7),
+                                decoration: BoxDecoration(
+                                  color: Colors.indigo.shade50,
+                                  borderRadius: BorderRadius.circular(9),
+                                ),
+                                child: const Icon(Icons.manage_accounts, color: Colors.indigo, size: 18),
                               ),
-                              child: const Icon(Icons.manage_accounts, color: Colors.indigo, size: 20),
-                            ),
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                              const SizedBox(width: 9),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Account & Role Manager', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                      decoration: BoxDecoration(
-                                        color: Colors.indigo.shade100,
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        '${_usersList.length} Users',
-                                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.indigo.shade800),
-                                      ),
+                                    Row(
+                                      children: [
+                                        const Text('Account & Role Manager', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: Colors.indigo.shade100,
+                                            borderRadius: BorderRadius.circular(5),
+                                          ),
+                                          child: Text(
+                                            '${usersList.length}',
+                                            style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.indigo.shade800),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    const Text(
+                                      'Search tag or email to edit staff roles',
+                                      style: TextStyle(fontSize: 9.5, color: Colors.grey),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 2),
-                                const Text(
-                                  'Search tag or email to edit staff roles',
-                                  style: TextStyle(fontSize: 10, color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -267,12 +260,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             children: [
                               Text(
                                 _isAccountManagerExpanded ? 'Hide' : 'Manage',
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black800),
+                                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.black87),
                               ),
                               const SizedBox(width: 4),
                               Icon(
                                 _isAccountManagerExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                size: 16,
+                                size: 15,
                                 color: Colors.grey.shade700,
                               ),
                             ],
@@ -299,62 +292,51 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             border: Border.all(color: Colors.indigo.shade100),
                           ),
                           child: const Text(
-                            'Newly registered accounts default to Customer. Only the Admin can search and promote users to Warehouse Staff in Firestore.',
-                            style: TextStyle(fontSize: 11, color: Colors.indigo, height: 1.3),
+                            'Newly registered accounts default to Customer. Admin can promote them to Warehouse Staff.',
+                            style: TextStyle(fontSize: 10.5, color: Colors.indigo, height: 1.3),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 10),
 
                         // Search Bar by tag or email
                         TextField(
                           decoration: InputDecoration(
                             hintText: 'Search user tag, name, or email...',
-                            hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-                            prefixIcon: const Icon(Icons.search, size: 18, color: Colors.grey),
+                            hintStyle: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                            prefixIcon: const Icon(Icons.search, size: 16, color: Colors.grey),
                             suffixIcon: _userSearchQuery.isNotEmpty
                                 ? IconButton(
-                                    icon: const Icon(Icons.clear, size: 16),
-                                    onPressed: () {
-                                      setState(() {
-                                        _userSearchQuery = '';
-                                      });
-                                    },
+                                    icon: const Icon(Icons.clear, size: 15),
+                                    onPressed: () => setState(() => _userSearchQuery = ''),
                                   )
                                 : null,
                             filled: true,
                             fillColor: Colors.grey.shade50,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
-                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
                           ),
-                          style: const TextStyle(fontSize: 12),
-                          onChanged: (val) {
-                            setState(() {
-                              _userSearchQuery = val;
-                            });
-                          },
+                          style: const TextStyle(fontSize: 11.5),
+                          onChanged: (val) => setState(() => _userSearchQuery = val),
                         ),
                         const SizedBox(height: 8),
 
                         // Filter Chips
-                        Row(
-                          children: [
-                            const Text('Filter: ', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 4),
-                            _buildRoleChip('all', 'All'),
-                            const SizedBox(width: 4),
-                            _buildRoleChip('customer', 'Customer'),
-                            const SizedBox(width: 4),
-                            _buildRoleChip('staff', 'Staff'),
-                            const SizedBox(width: 4),
-                            _buildRoleChip('admin', 'Admin'),
-                          ],
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              const Text('Filter: ', style: TextStyle(fontSize: 9.5, color: Colors.grey, fontWeight: FontWeight.bold)),
+                              const SizedBox(width: 4),
+                              _buildRoleChip('all', 'All'),
+                              const SizedBox(width: 4),
+                              _buildRoleChip('customer', 'Customer'),
+                              const SizedBox(width: 4),
+                              _buildRoleChip('staff', 'Staff'),
+                              const SizedBox(width: 4),
+                              _buildRoleChip('admin', 'Admin'),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 10),
 
@@ -365,7 +347,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               ? const Center(
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(vertical: 20),
-                                    child: Text('No users matching search.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                                    child: Text('No users matching search query.', style: TextStyle(fontSize: 11, color: Colors.grey)),
                                   ),
                                 )
                               : ListView.separated(
@@ -395,12 +377,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                                   children: [
                                                     Flexible(
                                                       child: Text(
-                                                        u['name']!,
-                                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                                        u['name'] ?? 'User',
+                                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
                                                         overflow: TextOverflow.ellipsis,
                                                       ),
                                                     ),
-                                                    const SizedBox(width: 6),
+                                                    const SizedBox(width: 5),
                                                     Container(
                                                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                                       decoration: BoxDecoration(
@@ -412,7 +394,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                                         borderRadius: BorderRadius.circular(4),
                                                       ),
                                                       child: Text(
-                                                        u['role']!.toUpperCase(),
+                                                        (u['role'] ?? 'customer').toUpperCase(),
                                                         style: TextStyle(
                                                           fontSize: 8,
                                                           fontWeight: FontWeight.bold,
@@ -428,13 +410,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                                 ),
                                                 const SizedBox(height: 2),
                                                 Text(
-                                                  u['email']!,
-                                                  style: const TextStyle(fontSize: 10, color: Colors.grey, fontFamily: 'monospace'),
+                                                  u['email'] ?? '',
+                                                  style: const TextStyle(fontSize: 9.5, color: Colors.grey, fontFamily: 'monospace'),
                                                   overflow: TextOverflow.ellipsis,
                                                 ),
                                                 Text(
-                                                  'Tag: ${u['tag']!}',
-                                                  style: TextStyle(fontSize: 9, color: Colors.grey.shade500, fontFamily: 'monospace'),
+                                                  'Tag: ${u['tag'] ?? ''}',
+                                                  style: TextStyle(fontSize: 8.5, color: Colors.grey.shade500, fontFamily: 'monospace'),
                                                 ),
                                               ],
                                             ),
@@ -446,7 +428,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                                 color: Colors.grey.shade200,
                                                 borderRadius: BorderRadius.circular(6),
                                               ),
-                                              child: const Text('Owner', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                                              child: const Text('Admin', style: TextStyle(fontSize: 9.5, color: Colors.grey, fontWeight: FontWeight.bold)),
                                             )
                                           else
                                             TextButton(
@@ -459,19 +441,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                               ),
                                               onPressed: () {
-                                                setState(() {
-                                                  u['role'] = isStaff ? 'customer' : 'staff';
-                                                });
+                                                final newRole = isStaff ? 'customer' : 'staff';
+                                                final updatedList = usersList.map((entry) {
+                                                  if (entry['uid'] == u['uid']) {
+                                                    return {
+                                                      ...entry,
+                                                      'role': newRole,
+                                                    };
+                                                  }
+                                                  return entry;
+                                                }).toList();
+                                                ref.read(directoryUsersProvider.notifier).state = updatedList;
+
                                                 ScaffoldMessenger.of(context).showSnackBar(
                                                   SnackBar(
-                                                    content: Text('Updated ${u['name']} role to "${u['role']!.toUpperCase()}" in Firestore!'),
+                                                    content: Text('Updated ${u['name']} role to "${newRole.toUpperCase()}"!'),
                                                     duration: const Duration(seconds: 2),
                                                   ),
                                                 );
                                               },
                                               child: Text(
                                                 isStaff ? 'Revoke' : 'Make Staff',
-                                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                                style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold),
                                               ),
                                             ),
                                         ],
@@ -565,10 +556,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
           onPressed: () async {
-            await ref.read(authNotifierProvider.notifier).signOut();
+            ref.read(mockRoleProvider.notifier).state = null;
+            ref.read(currentUserProfileProvider.notifier).state = null;
+            await ref.read(authServiceProvider).signOut();
           },
           icon: const Icon(Icons.logout, size: 16),
-          label: const Text('Sign Out of Google Account', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          label: const Text('Sign Out of Account', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         ),
       ],
     );
@@ -584,7 +577,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       },
       borderRadius: BorderRadius.circular(6),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
         decoration: BoxDecoration(
           color: isSelected ? Colors.indigo : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(6),
@@ -605,14 +598,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.shipNavyPrimary,
-            fontFamily: isMono ? 'monospace' : null,
+        Text(label, style: const TextStyle(fontSize: 11.5, color: Colors.grey)),
+        Flexible(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.shipNavyPrimary,
+              fontFamily: isMono ? 'monospace' : null,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
