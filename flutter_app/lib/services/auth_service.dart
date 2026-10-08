@@ -32,14 +32,14 @@ class AuthService {
 
   // Stream of user role from Firestore users/{uid} in REAL TIME
   Stream<String> userRoleStream(String uid) {
-    if (!isFirebaseInitialized) return Stream.value('staff');
+    if (!isFirebaseInitialized) return Stream.value('customer');
 
     return _firestore.collection('users').doc(uid).snapshots().map((doc) {
       if (doc.exists && doc.data() != null) {
         final data = doc.data()!;
-        return data['role'] as String? ?? 'staff';
+        return data['role'] as String? ?? 'customer';
       }
-      return 'staff';
+      return 'customer';
     });
   }
 
@@ -78,13 +78,16 @@ class AuthService {
       final userSnapshot = await userDocRef.get();
 
       if (!userSnapshot.exists) {
-        // Module 2 Rule: On first login, create users/{uid} with role "staff"
+        // Automatically default into Customer account; only gj8506 is default Admin
+        final isGjAdmin = user.email == 'gj8506@gmail.com' || (user.email != null && user.email!.startsWith('gj8506'));
+        final assignedRole = isGjAdmin ? 'admin' : 'customer';
+
         await userDocRef.set({
           'uid': user.uid,
           'email': user.email ?? '',
           'displayName': user.displayName ?? '',
           'photoUrl': user.photoURL ?? '',
-          'role': 'staff', // strict default role
+          'role': assignedRole,
           'dpaConsent': true,
           'dpaConsentTimestamp': FieldValue.serverTimestamp(),
           'createdAt': FieldValue.serverTimestamp(),

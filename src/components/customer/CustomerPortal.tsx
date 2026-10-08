@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Parcel, Product, ChatMessage } from '../../types';
+import { Parcel, Product, ChatMessage, ChatType } from '../../types';
 import { CustomerParcels } from './CustomerParcels';
 import { CustomerStore } from './CustomerStore';
 import { CustomerChat } from './CustomerChat';
@@ -9,7 +9,12 @@ interface CustomerPortalProps {
   parcels: Parcel[];
   products: Product[];
   chatMessages: ChatMessage[];
-  onSendMessage: (text: string, attachedItem?: { type: 'parcel' | 'product'; id: string; name: string }) => void;
+  onSendMessage: (
+    text: string,
+    attachedItem?: { type: 'parcel' | 'product'; id: string; name: string },
+    chatType?: ChatType
+  ) => void;
+  isAdminTyping?: boolean;
   onSelectParcel: (parcel: Parcel) => void;
   onSignOut: () => void;
   customerName?: string;
@@ -21,6 +26,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
   products,
   chatMessages,
   onSendMessage,
+  isAdminTyping = false,
   onSelectParcel,
   onSignOut,
   customerName = 'New Customer',
@@ -52,10 +58,10 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex justify-center text-slate-900">
-      <div className="w-full max-w-md min-h-screen bg-[#F8FAFC] flex flex-col relative shadow-sm border-x border-slate-200/60">
+    <div className="h-screen max-h-screen bg-[#F8FAFC] flex justify-center text-slate-900 overflow-hidden">
+      <div className="w-full max-w-md h-full bg-[#F8FAFC] flex flex-col relative shadow-sm border-x border-slate-200/60 overflow-hidden">
         {/* Top Header */}
-        <header className="bg-[#0F172A] text-white px-4 py-3 flex items-center justify-between shadow-xs">
+        <header className="bg-[#0F172A] text-white px-4 py-3 flex items-center justify-between shadow-xs shrink-0 z-10">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-[#0EA5E9] flex items-center justify-center font-bold">
               <Package className="w-4 h-4 text-sky-400" />
@@ -77,7 +83,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
         </header>
 
         {/* Main Tab Views */}
-        <main className="flex-1 overflow-y-auto">
+        <main className={`flex-1 min-h-0 ${currentTab === 'chat' ? 'flex flex-col overflow-hidden pb-16' : 'overflow-y-auto'}`}>
           {currentTab === 'parcels' && (
             <CustomerParcels
               parcels={parcels}
@@ -98,6 +104,7 @@ export const CustomerPortal: React.FC<CustomerPortalProps> = ({
             <CustomerChat
               messages={chatMessages}
               onSendMessage={onSendMessage}
+              isAdminTyping={isAdminTyping}
               pendingAttachment={pendingAttachment}
               onClearAttachment={() => setPendingAttachment(null)}
               customerName={customerName}

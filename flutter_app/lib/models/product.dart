@@ -34,6 +34,7 @@ class ChatMessage {
   final String timestamp;
   final String? trackingNumber;
   final String? productId;
+  final String? chatType; // 'order', 'return', 'product', 'general'
 
   ChatMessage({
     required this.id,
@@ -43,5 +44,6 @@ class ChatMessage {
     required this.timestamp,
     this.trackingNumber,
     this.productId,
+    this.chatType,
   });
 }

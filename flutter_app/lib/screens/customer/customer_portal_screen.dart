@@ -12,9 +12,10 @@ class CustomerPortalScreen extends ConsumerStatefulWidget {
   final List<Parcel> parcels;
   final List<Product> products;
   final List<ChatMessage> chatMessages;
-  final Function(String, String?) onSendMessage;
+  final Function(String, String?, String?) onSendMessage;
   final Function(Parcel) onSelectParcel;
   final VoidCallback onSignOut;
+  final bool isAdminTyping;
 
   const CustomerPortalScreen({
     Key? key,
@@ -24,6 +25,7 @@ class CustomerPortalScreen extends ConsumerStatefulWidget {
     required this.onSendMessage,
     required this.onSelectParcel,
     required this.onSignOut,
+    this.isAdminTyping = false,
   }) : super(key: key);
 
   @override
@@ -69,6 +71,7 @@ class _CustomerPortalScreenState extends ConsumerState<CustomerPortalScreen> {
         messages: widget.chatMessages,
         onSendMessage: widget.onSendMessage,
         initialInquiry: _pendingInquiry,
+        isAdminTyping: widget.isAdminTyping,
       ),
       _buildCustomerAccountScreen(displayName, displayEmail, userProfile?.tag ?? '#CST-NEW'),
     ];

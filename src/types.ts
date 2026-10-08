@@ -56,6 +56,8 @@ export interface Product {
   reviewsCount: number;
 }
 
+export type ChatType = 'order' | 'return' | 'product' | 'general';
+
 export interface ChatMessage {
   id: string;
   sender: 'customer' | 'admin';
@@ -65,6 +67,7 @@ export interface ChatMessage {
   parcelId?: string;
   trackingNumber?: string;
   productId?: string;
+  chatType?: ChatType;
 }
 
 export type PortalType = 'warehouse' | 'customer';

@@ -8,6 +8,8 @@ import 'screens/login_screen.dart';
 import 'screens/parcels_screen.dart';
 import 'screens/dispatch_screen.dart';
 import 'screens/returns_screen.dart';
+import 'screens/operations_screen.dart';
+import 'screens/admin_chat_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/customer/customer_portal_screen.dart';
@@ -207,9 +209,12 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
     ),
   ];
 
-  void _handleCustomerSendMessage(String text, String? trackingNumber) {
+  bool _isAdminTyping = false;
+
+  void _handleCustomerSendMessage(String text, String? trackingNumber, [String? chatType]) {
     final userProfile = ref.read(currentUserProfileProvider);
     final senderName = userProfile?.displayName ?? 'New Customer';
+    final determinedType = chatType ?? 'order';
 
     setState(() {
       _customerChatMessages.add(
@@ -220,25 +225,60 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
           text: text,
           timestamp: 'Just now',
           trackingNumber: trackingNumber,
+          chatType: determinedType,
         ),
       );
+      _isAdminTyping = true;
     });
 
-    // Auto-reply simulation from Admin gj8506
-    Future.delayed(const Duration(milliseconds: 1000), () {
+    // Auto-reply simulation from Admin gj8506 with realistic typing indicator
+    Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) {
+        String replyText = 'Thanks for messaging GJ & Asher Hub! Our fulfillment team is reviewing your inquiry.';
+        final lower = text.toLowerCase();
+
+        if (determinedType == 'return' || lower.contains('return') || lower.contains('damage') || lower.contains('refund')) {
+          replyText = 'Return inquiry logged. Keep package seal intact. We will inspect the RTS parcel upon warehouse arrival.';
+        } else if (determinedType == 'order' || lower.contains('where') || lower.contains('dispatched') || lower.contains('tracking')) {
+          replyText = 'Hi! We checked your order status. The courier has scanned the waybill and it is currently in transit to your city hub on schedule!';
+        } else if (determinedType == 'product' || lower.contains('stock') || lower.contains('available') || lower.contains('keyboard')) {
+          replyText = 'Great news! That item is in stock at our warehouse (MNL-HUB-04) with same-day dispatch available.';
+        } else if (lower.contains('address') || lower.contains('change')) {
+          replyText = 'We can update destination routing as long as the parcel has not yet been loaded into the courier last-mile van.';
+        } else {
+          replyText = 'Hello! Warehouse Admin gj8506 here. We received your inquiry and our logistics desk will assist you shortly.';
+        }
+
         setState(() {
+          _isAdminTyping = false;
           _customerChatMessages.add(
             ChatMessage(
               id: 'msg-admin-${DateTime.now().millisecondsSinceEpoch}',
               sender: 'admin',
               senderName: 'Admin (gj8506)',
-              text: 'Thanks for messaging GJ & Asher Hub! Our fulfillment team is reviewing your inquiry.',
+              text: replyText,
               timestamp: 'Just now',
+              chatType: determinedType,
             ),
           );
         });
       }
+    });
+  }
+
+  void _handleAdminSendMessage(String text, String? trackingNumber) {
+    setState(() {
+      _customerChatMessages.add(
+        ChatMessage(
+          id: 'msg-admin-${DateTime.now().millisecondsSinceEpoch}',
+          sender: 'admin',
+          senderName: 'Admin (gj8506)',
+          text: text,
+          timestamp: 'Just now',
+          trackingNumber: trackingNumber,
+          chatType: 'general',
+        ),
+      );
     });
   }
 
@@ -299,6 +339,7 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
         onSendMessage: _handleCustomerSendMessage,
         onSelectParcel: _showParcelDetailModal,
         onSignOut: _handleSignOut,
+        isAdminTyping: _isAdminTyping,
       );
     }
 
@@ -315,13 +356,17 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
         onSelectParcel: _showParcelDetailModal,
         userRole: '${activeRole.toUpperCase()} MODE',
       ),
-      DispatchScreen(
+      OperationsScreen(
         onAddParcel: (p) => setState(() => _warehouseParcels.insert(0, p)),
         onNavigateToParcels: () => setState(() => _selectedIndex = 0),
-      ),
-      ReturnsScreen(
         returns: _returns,
         onAddReturn: (r) => setState(() => _returns.insert(0, r)),
+      ),
+      AdminChatScreen(
+        messages: _customerChatMessages,
+        onSendMessage: _handleAdminSendMessage,
+        parcels: _warehouseParcels,
+        adminName: 'Admin (gj8506)',
       ),
       AnalyticsScreen(
         isAdmin: isAdmin,
@@ -385,14 +430,14 @@ class _MainPortalRouterState extends ConsumerState<MainPortalRouter> {
             label: 'Parcels',
           ),
           NavigationDestination(
-            icon: Icon(Icons.send_outlined),
-            selectedIcon: Icon(Icons.send, color: Colors.white),
-            label: 'Dispatch',
+            icon: Icon(Icons.swap_horiz_rounded),
+            selectedIcon: Icon(Icons.swap_horiz, color: Colors.white),
+            label: 'Operations',
           ),
           NavigationDestination(
-            icon: Icon(Icons.assignment_return_outlined),
-            selectedIcon: Icon(Icons.assignment_return, color: Colors.white),
-            label: 'Returns',
+            icon: Icon(Icons.chat_bubble_outline),
+            selectedIcon: Icon(Icons.chat_bubble, color: Colors.white),
+            label: 'Chat',
           ),
           NavigationDestination(
             icon: Icon(Icons.bar_chart_outlined),

@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { ParcelsDashboard } from './components/ParcelsDashboard';
-import { DispatchScreen } from './components/DispatchScreen';
-import { ReturnsScreen } from './components/ReturnsScreen';
+import { OperationsScreen } from './components/OperationsScreen';
+import { AdminChatScreen } from './components/AdminChatScreen';
 import { AnalyticsScreen } from './components/AnalyticsScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { ParcelDetailModal } from './components/ParcelDetailModal';
 import { LoginScreen } from './components/LoginScreen';
 import { CustomerPortal } from './components/customer/CustomerPortal';
 import { INITIAL_PARCELS, INITIAL_RETURNS, INITIAL_PRODUCTS, INITIAL_CHAT_MESSAGES, INITIAL_USERS } from './mockData';
-import { Parcel, ReturnRecord, Product, ChatMessage, PortalType, UserRecord } from './types';
+import { Parcel, ReturnRecord, Product, ChatMessage, PortalType, UserRecord, ChatType } from './types';
 import { LogOut, Truck } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -101,11 +101,18 @@ export const App: React.FC = () => {
     setReturns((prev) => [newReturn, ...prev]);
   };
 
+  const [isAdminTyping, setIsAdminTyping] = useState<boolean>(false);
+
   // Two-way messaging between customer and admin
   const handleSendMessage = (
     text: string,
-    attachedItem?: { type: 'parcel' | 'product'; id: string; name: string }
+    attachedItem?: { type: 'parcel' | 'product'; id: string; name: string },
+    chatType?: ChatType
   ) => {
+    const determinedType: ChatType =
+      chatType ||
+      (attachedItem?.type === 'parcel' ? 'order' : attachedItem?.type === 'product' ? 'product' : 'general');
+
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       sender: 'customer',
@@ -114,23 +121,27 @@ export const App: React.FC = () => {
       timestamp: 'Just now',
       trackingNumber: attachedItem?.type === 'parcel' ? attachedItem.name.match(/#(\w+)/)?.[1] : undefined,
       productId: attachedItem?.type === 'product' ? attachedItem.id : undefined,
+      chatType: determinedType,
     };
 
     setChatMessages((prev) => [...prev, newMsg]);
+    setIsAdminTyping(true);
 
-    // Simulated Smart Admin Response from Admin gj8506 after 1 second
+    // Simulated Smart Admin Response from Admin gj8506 with realistic typing indicator
     setTimeout(() => {
       let replyText = 'Thank you for reaching out to GJ & Asher Logistics Hub. Our fulfillment team is reviewing your request.';
       const lower = text.toLowerCase();
 
-      if (lower.includes('where') || lower.includes('dispatched') || lower.includes('order') || lower.includes('tracking')) {
+      if (determinedType === 'return' || lower.includes('return') || lower.includes('refund') || lower.includes('damage') || lower.includes('broken')) {
+        replyText = 'Return request logged. Please keep packaging seals intact. We have queued your waybill for RTS condition check upon hub arrival.';
+      } else if (determinedType === 'order' || lower.includes('where') || lower.includes('dispatched') || lower.includes('order') || lower.includes('tracking')) {
         replyText = 'Hi! We checked your order status. The courier has scanned the waybill and it is currently in transit to your city hub on schedule!';
-      } else if (lower.includes('stock') || lower.includes('available') || lower.includes('keyboard') || lower.includes('earbuds')) {
+      } else if (determinedType === 'product' || lower.includes('stock') || lower.includes('available') || lower.includes('keyboard') || lower.includes('earbuds')) {
         replyText = 'Great news! That item is in stock at our warehouse (MNL-HUB-04) with same-day dispatch available.';
-      } else if (lower.includes('return') || lower.includes('refund') || lower.includes('damage') || lower.includes('broken')) {
-        replyText = 'We apologize for any inconvenience! Please keep the parcel and shipping seal intact. We can log an RTS condition inspection for immediate refund processing.';
       } else if (lower.includes('address') || lower.includes('change')) {
         replyText = 'We can update your destination hub routing as long as the parcel has not yet been loaded into the courier last-mile dispatch van.';
+      } else {
+        replyText = 'Hello! Warehouse Admin (gj8506) here. We received your customer inquiry and our logistics team will ensure prompt resolution.';
       }
 
       const adminReply: ChatMessage = {
@@ -139,10 +150,25 @@ export const App: React.FC = () => {
         senderName: 'Admin (gj8506)',
         text: replyText,
         timestamp: 'Just now',
+        chatType: determinedType,
       };
 
       setChatMessages((prev) => [...prev, adminReply]);
-    }, 1100);
+      setIsAdminTyping(false);
+    }, 1200);
+  };
+
+  const handleAdminSendMessage = (text: string, trackingNumber?: string) => {
+    const adminMsg: ChatMessage = {
+      id: `msg-admin-${Date.now()}`,
+      sender: 'admin',
+      senderName: `Admin (${currentUser.displayName || 'gj8506'})`,
+      text,
+      timestamp: 'Just now',
+      trackingNumber,
+      chatType: 'general',
+    };
+    setChatMessages((prev) => [...prev, adminMsg]);
   };
 
   // If not authenticated, directly present Login / First-time Sign-up page
@@ -158,6 +184,7 @@ export const App: React.FC = () => {
         products={products}
         chatMessages={chatMessages}
         onSendMessage={handleSendMessage}
+        isAdminTyping={isAdminTyping}
         onSelectParcel={(p) => setSelectedParcel(p)}
         onSignOut={handleSignOut}
         customerName={currentUser.displayName}
@@ -220,16 +247,20 @@ export const App: React.FC = () => {
           )}
 
           {selectedTab === 1 && (
-            <DispatchScreen
+            <OperationsScreen
               onAddParcel={handleAddParcel}
               onNavigateToParcels={() => setSelectedTab(0)}
+              returns={returns}
+              onAddReturn={handleAddReturn}
             />
           )}
 
           {selectedTab === 2 && (
-            <ReturnsScreen
-              returns={returns}
-              onAddReturn={handleAddReturn}
+            <AdminChatScreen
+              messages={chatMessages}
+              onSendMessage={handleAdminSendMessage}
+              parcels={parcels}
+              adminName={currentUser.displayName || 'Admin (gj8506)'}
             />
           )}
 
@@ -263,6 +294,7 @@ export const App: React.FC = () => {
           currentTab={selectedTab}
           onSelectTab={setSelectedTab}
           pendingReturnsCount={returns.filter((r) => r.refundStatus === 'Pending Inspection').length}
+          unreadMessagesCount={chatMessages.filter((m) => m.sender === 'customer').length}
         />
       </div>
     </div>
